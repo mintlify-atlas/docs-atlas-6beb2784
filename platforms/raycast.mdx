@@ -1,0 +1,475 @@
+---
+title: "Raycast Extension"
+description: "Quick access to Convex from your command launcher"
+---
+
+# Raycast Extension
+
+The Convex Panel Raycast extension brings powerful Convex debugging tools directly to your macOS launcher. Execute functions, browse data, view logs, and more—all without leaving your keyboard.
+
+![Raycast Extension](https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2Fconvex%202026-01-15%20at%2009.06.58.png?alt=media&token=074c65f1-812b-4d54-b0b9-b918b3b78f42)
+
+## Installation
+
+<Steps>
+  <Step title="Install Raycast">
+    Download [Raycast](https://raycast.com) if you haven't already (free for personal use)
+  </Step>
+  <Step title="Install Extension">
+    Visit the [Raycast Store](https://raycast.com/convexpanel/convex-panel) and click "Install Extension"
+    
+    Or search for "Convex" in Raycast's extension store
+  </Step>
+  <Step title="Configure Credentials">
+    Open Raycast → Extensions → Convex → Configure Extension
+    
+    Add your deploy key and deployment URL (optional)
+  </Step>
+  <Step title="Start Using">
+    Trigger Raycast (`Cmd + Space`) and start typing a Convex command
+  </Step>
+</Steps>
+
+## Requirements
+
+- **macOS**: 10.15 (Catalina) or later
+- **Raycast**: Latest version recommended
+- **Convex**: Active Convex project with API access
+
+## Available Commands
+
+The extension includes 10 powerful commands:
+
+### Manage Projects
+
+Switch between your Convex projects quickly.
+
+```bash
+# Command
+Manage Projects
+
+# Features
+- View all projects in your team
+- Switch active project
+- See deployment status
+- Quick access to dashboard
+```
+
+<Note>
+  Projects are automatically synced from your Convex account.
+</Note>
+
+### Switch Deployment
+
+Toggle between dev, staging, and production deployments.
+
+<Tabs>
+  <Tab title="Development">
+    Your local development deployment for testing
+  </Tab>
+  <Tab title="Staging">
+    Preview environment for testing before production
+  </Tab>
+  <Tab title="Production">
+    Your live production deployment
+  </Tab>
+</Tabs>
+
+```typescript
+// Command implementation
+export default function SwitchDeployment() {
+  const deployments = [
+    { name: 'Development', url: 'https://dev.convex.cloud' },
+    { name: 'Production', url: 'https://prod.convex.cloud' },
+  ];
+  
+  return (
+    <List>
+      {deployments.map(d => (
+        <List.Item key={d.url} title={d.name} />
+      ))}
+    </List>
+  );
+}
+```
+
+### Run Function
+
+Execute Convex queries, mutations, and actions directly from Raycast.
+
+<Steps>
+  <Step title="Select Function">
+    Search and select from all available functions
+  </Step>
+  <Step title="Provide Arguments">
+    Enter function arguments as JSON
+  </Step>
+  <Step title="Execute">
+    Run the function and see results instantly
+  </Step>
+  <Step title="View Results">
+    Results displayed with syntax highlighting
+  </Step>
+</Steps>
+
+```json
+// Example: Running a function
+{
+  "function": "users:getById",
+  "args": {
+    "userId": "user_123"
+  },
+  "result": {
+    "_id": "user_123",
+    "name": "John Doe",
+    "email": "john@example.com"
+  }
+}
+```
+
+### Data Browser
+
+Quick access to your Convex table data.
+
+<CardGroup cols={2}>
+  <Card title="Browse Tables" icon="table">
+    View all tables in your deployment
+  </Card>
+  <Card title="Search Documents" icon="magnifying-glass">
+    Full-text search across documents
+  </Card>
+  <Card title="Quick Actions" icon="bolt">
+    Copy IDs, open in dashboard, view details
+  </Card>
+  <Card title="Pagination" icon="arrow-right-arrow-left">
+    Navigate through large datasets
+  </Card>
+</CardGroup>
+
+### View Logs
+
+Stream function execution logs directly in Raycast.
+
+```typescript
+// Logs are streamed in real-time
+interface LogEntry {
+  timestamp: string;
+  level: 'INFO' | 'ERROR' | 'DEBUG';
+  functionName: string;
+  message: string;
+  duration?: number;
+}
+```
+
+<Note>
+  Logs automatically refresh and show the most recent entries first.
+</Note>
+
+### Search Docs
+
+Search the official Convex documentation without leaving Raycast.
+
+<Steps>
+  <Step title="Type Query">
+    Start typing your search query
+  </Step>
+  <Step title="See Results">
+    Results appear instantly as you type
+  </Step>
+  <Step title="Open Doc">
+    Press Enter to open in browser
+  </Step>
+</Steps>
+
+### Browse Components
+
+Explore the Convex component registry.
+
+- View all available components
+- See component descriptions and metadata
+- Quick install commands
+- Open component documentation
+
+### Open Dashboard
+
+Jump to the Convex dashboard for your current deployment.
+
+```bash
+# Opens in default browser
+https://dashboard.convex.dev/t/your-team/your-project/prod
+```
+
+### Copy Deployment URL
+
+Quickly copy your deployment URL to the clipboard.
+
+```bash
+# Copied to clipboard
+https://your-deployment.convex.cloud
+```
+
+<Note>
+  Useful when sharing deployment URLs with team members or configuring environment variables.
+</Note>
+
+### Configure Deploy Key
+
+Set up deploy key authentication for direct deployment access.
+
+<Steps>
+  <Step title="Get Deploy Key">
+    Go to Dashboard → Settings → Deploy Key
+  </Step>
+  <Step title="Copy Key">
+    Copy the deploy key (format: `instance-name|key`)
+  </Step>
+  <Step title="Add to Raycast">
+    Run "Configure Deploy Key" command and paste
+  </Step>
+  <Step title="Test Connection">
+    Try any command to verify authentication
+  </Step>
+</Steps>
+
+## Extension Preferences
+
+Configure the extension in Raycast settings:
+
+| Preference | Type | Description |
+|-----------|------|-------------|
+| **Deploy Key** | Password | Convex deploy key for direct access (format: `instance-name\|key`) |
+| **Deployment URL** | Text | Your Convex deployment URL (e.g., `https://polite-condor-874.convex.cloud`) |
+
+<CodeGroup>
+```json Configuration
+{
+  "preferences": [
+    {
+      "name": "deployKey",
+      "title": "Deploy Key",
+      "description": "Get from Dashboard → Settings → Deploy Key",
+      "type": "password",
+      "required": false
+    },
+    {
+      "name": "deploymentUrl",
+      "title": "Deployment URL",
+      "description": "Example: https://polite-condor-874.convex.cloud",
+      "type": "textfield",
+      "required": false
+    }
+  ]
+}
+```
+</CodeGroup>
+
+<Warning>
+  Keep your deploy key secure! It provides full access to your Convex deployment.
+</Warning>
+
+## Keyboard Shortcuts
+
+Default Raycast shortcuts work with all commands:
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd + K` | Open command palette |
+| `Cmd + Enter` | Primary action |
+| `Cmd + Shift + Enter` | Secondary action |
+| `Cmd + C` | Copy selected item |
+| `Escape` | Go back / cancel |
+| `↑` / `↓` | Navigate items |
+
+<Note>
+  You can customize shortcuts in Raycast → Extensions → Convex → Configure Extension.
+</Note>
+
+## Extension Architecture
+
+Built with Raycast's modern extension API:
+
+```typescript
+// Example command structure
+import { List, ActionPanel, Action } from "@raycast/api";
+import { useEffect, useState } from "react";
+
+export default function Command() {
+  const [items, setItems] = useState([]);
+  
+  useEffect(() => {
+    // Fetch data from Convex API
+  }, []);
+  
+  return (
+    <List>
+      {items.map(item => (
+        <List.Item
+          key={item.id}
+          title={item.title}
+          actions={
+            <ActionPanel>
+              <Action title="Open" onAction={() => {}} />
+            </ActionPanel>
+          }
+        />
+      ))}
+    </List>
+  );
+}
+```
+
+## Building from Source
+
+Want to customize the extension?
+
+<Steps>
+  <Step title="Clone Repository">
+    ```bash
+    git clone https://github.com/robertalv/convex-panel.git
+    cd convex-panel/apps/raycast
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  
+  <Step title="Start Development">
+    ```bash
+    npm run dev
+    ```
+    
+    This opens the extension in Raycast development mode
+  </Step>
+  
+  <Step title="Build for Distribution">
+    ```bash
+    npm run build
+    ```
+  </Step>
+</Steps>
+
+## Package Scripts
+
+```json
+{
+  "scripts": {
+    "build": "ray build --skip-types -e dist -o dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "npx @raycast/api@latest publish"
+  }
+}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Extension not showing up">
+    - Restart Raycast (Quit and reopen)
+    - Check that the extension is enabled in Raycast settings
+    - Try reinstalling from the Raycast Store
+  </Accordion>
+  
+  <Accordion title="Authentication errors">
+    - Verify your deploy key format: `instance-name|key`
+    - Get a fresh deploy key from Convex dashboard
+    - Check that your deployment URL is correct
+    - Try removing and re-adding credentials
+  </Accordion>
+  
+  <Accordion title="Commands timing out">
+    - Check your internet connection
+    - Verify the Convex deployment is online
+    - Try with a different deployment URL
+    - Check Convex dashboard for service status
+  </Accordion>
+  
+  <Accordion title="Can't see my projects">
+    - Ensure you have access to the team in Convex dashboard
+    - Verify your deploy key has the correct permissions
+    - Try the "Manage Projects" command to refresh
+  </Accordion>
+</AccordionGroup>
+
+## Tips & Tricks
+
+<CardGroup cols={2}>
+  <Card title="Aliases" icon="keyboard">
+    Set up Raycast aliases for frequently used commands (e.g., `cdata` → Data Browser)
+  </Card>
+  <Card title="Hotkeys" icon="bolt">
+    Assign global hotkeys to your most-used commands for instant access
+  </Card>
+  <Card title="Quicklinks" icon="link">
+    Create quicklinks for specific deployments or queries
+  </Card>
+  <Card title="Scripts" icon="terminal">
+    Chain commands together with Raycast's script commands
+  </Card>
+</CardGroup>
+
+## Community Extensions
+
+Build your own Convex commands:
+
+```typescript
+// Custom command example
+import { showToast, Toast } from "@raycast/api";
+import { convexClient } from "./utils/convex";
+
+export default async function Command() {
+  try {
+    const result = await convexClient.query(
+      "myFunction",
+      { arg: "value" }
+    );
+    
+    await showToast({
+      style: Toast.Style.Success,
+      title: "Function executed",
+      message: JSON.stringify(result),
+    });
+  } catch (error) {
+    await showToast({
+      style: Toast.Style.Failure,
+      title: "Error",
+      message: error.message,
+    });
+  }
+}
+```
+
+<Note>
+  Share your custom commands with the community by submitting them to the Raycast Store!
+</Note>
+
+## Comparison with Other Platforms
+
+| Feature | Raycast | Desktop | Mobile | NPM |
+|---------|---------|---------|--------|-----|
+| **Quick Launch** | ✅ Best | ❌ | ❌ | ❌ |
+| **Keyboard-first** | ✅ | ⚠️ Partial | ❌ | ⚠️ Partial |
+| **Always Available** | ✅ | ✅ | ✅ | ⚠️ Dev only |
+| **Full Feature Set** | ⚠️ Limited | ✅ Complete | ⚠️ Core features | ✅ Complete |
+| **Platform** | macOS only | Cross-platform | iOS/Android | Web |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Desktop App" icon="desktop" href="/platforms/desktop">
+    Full-featured desktop application
+  </Card>
+  <Card title="NPM Package" icon="npm" href="/platforms/npm-package">
+    Embed in your React app
+  </Card>
+  <Card title="Mobile App" icon="mobile" href="/platforms/mobile">
+    Monitor on the go
+  </Card>
+  <Card title="Raycast Store" icon="store" href="https://raycast.com/convexpanel/convex-panel">
+    Install the extension
+  </Card>
+</CardGroup>

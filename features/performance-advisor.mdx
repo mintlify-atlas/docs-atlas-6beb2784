@@ -1,0 +1,545 @@
+---
+title: Performance Advisor
+description: Get actionable insights to optimize your Convex application performance
+icon: gauge
+---
+
+The Performance Advisor analyzes your Convex application and provides intelligent recommendations to improve query performance, optimize indexes, and enhance overall system health.
+
+## Overview
+
+Performance Advisor uses AI and static analysis to identify bottlenecks, suggest optimizations, and help you build faster, more efficient Convex applications.
+
+<Tip>
+  Performance Advisor continuously monitors your application and updates recommendations in real-time.
+</Tip>
+
+## Schema Health Score
+
+Get an overall health rating for your database schema:
+
+```
+┌─────────────────────────────────────────────────────┐
+│                                                      │
+│      Schema Health Score: 87/100  🟢 Good          │
+│                                                      │
+│  ████████████████████░░░░░░░                        │
+│                                                      │
+│  Components:                                         │
+│    ✓ Index Coverage:      95/100                    │
+│    ✓ Query Efficiency:    92/100                    │
+│    ⚠ Schema Design:       78/100                    │
+│    ✓ Relationship Health: 88/100                    │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+```
+
+<CardGroup cols={4}>
+  <Card title="Excellent" icon="check">
+    🟢 90-100: Well-optimized
+  </Card>
+  <Card title="Good" icon="thumbs-up">
+    🟡 70-89: Minor improvements
+  </Card>
+  <Card title="Fair" icon="exclamation">
+    🟠 50-69: Needs attention
+  </Card>
+  <Card title="Poor" icon="xmark">
+    🔴 0-49: Critical issues
+  </Card>
+</CardGroup>
+
+## Index Optimization
+
+### Missing Index Detection
+
+Automatically identifies queries that would benefit from indexes:
+
+<Tabs>
+  <Tab title="Recommendation">
+    **Index Suggestion**
+    
+    ```typescript
+    // ⚠️ Detected Issue
+    // Query in: api/messages:listByUser
+    // Pattern: Filtering by userId without index
+    
+    await ctx.db.query("messages")
+      .filter(q => q.eq(q.field("userId"), userId))
+      .collect();
+    
+    // 🚀 Recommended Fix
+    // Add index in convex/schema.ts:
+    
+    messages: defineTable({
+      userId: v.id("users"),
+      text: v.string(),
+      // ... other fields
+    }).index("by_user", ["userId"]),
+    ```
+    
+    **Impact**: Query time reduced from ~200ms to ~5ms (40x faster)
+  </Tab>
+  
+  <Tab title="Auto-Fix">
+    **One-Click Apply**
+    
+    <Steps>
+      <Step title="Review suggestion">
+        Check the recommended index configuration
+      </Step>
+      <Step title="Click 'Apply Fix'">
+        Automatically adds index to schema file
+      </Step>
+      <Step title="Deploy changes">
+        Push updated schema to deployment
+      </Step>
+      <Step title="Verify improvement">
+        Monitor query performance after index creation
+      </Step>
+    </Steps>
+    
+    <Note>
+      Auto-fix modifies your schema.ts file. Review changes before deploying.
+    </Note>
+  </Tab>
+  
+  <Tab title="Compound Indexes">
+    **Multi-Field Indexes**
+    
+    For queries filtering on multiple fields:
+    
+    ```typescript
+    // Query pattern detected:
+    await ctx.db.query("messages")
+      .filter(q => 
+        q.and(
+          q.eq(q.field("userId"), userId),
+          q.eq(q.field("channel"), channel)
+        )
+      )
+      .collect();
+    
+    // Recommended compound index:
+    messages: defineTable({
+      // ... fields
+    }).index("by_user_and_channel", ["userId", "channel"]),
+    ```
+    
+    <Tip>
+      Field order matters! Put the most selective field first.
+    </Tip>
+  </Tab>
+</Tabs>
+
+### Index Usage Analysis
+
+<AccordionGroup>
+  <Accordion title="Unused Indexes">
+    Identifies indexes that are never queried:
+    
+    - **Index name**: by_old_field
+    - **Created**: 30 days ago
+    - **Usage**: 0 queries in last 7 days
+    - **Recommendation**: Consider removing
+    - **Impact**: Reduces write overhead
+    
+    <Warning>
+      Verify index is truly unused before removing. Check all environments.
+    </Warning>
+  </Accordion>
+  
+  <Accordion title="Redundant Indexes">
+    Finds overlapping indexes:
+    
+    ```typescript
+    // Redundant indexes detected:
+    .index("by_user", ["userId"])          // ← Redundant
+    .index("by_user_created", ["userId", "_creationTime"])  // ← Covers above
+    
+    // Recommendation: Remove "by_user" index
+    // "by_user_created" can serve both queries
+    ```
+  </Accordion>
+  
+  <Accordion title="Index Selectivity">
+    Measures how effectively indexes narrow results:
+    
+    - **High selectivity** (good): Index narrows to less than 1% of rows
+    - **Medium selectivity** (okay): 1-10% of rows
+    - **Low selectivity** (poor): >10% of rows
+    
+    Low selectivity indexes may not improve performance.
+  </Accordion>
+</AccordionGroup>
+
+## Query Performance
+
+### Slow Query Detection
+
+Identifies and analyzes slow queries:
+
+<CardGroup cols={2}>
+  <Card title="Scan Detection" icon="magnifying-glass">
+    Finds full table scans
+    - Queries without indexes
+    - Large result sets
+    - Sequential scans
+    - Performance impact
+  </Card>
+  <Card title="N+1 Queries" icon="layer-group">
+    Detects N+1 query patterns
+    - Multiple sequential queries
+    - Loop-based data fetching
+    - Suggested batch operations
+    - Join alternatives
+  </Card>
+  <Card title="Large Reads" icon="database">
+    Monitors data transfer
+    - Queries reading >10MB
+    - Over-fetching detection
+    - Pagination suggestions
+    - Field selection tips
+  </Card>
+  <Card title="Long Execution" icon="clock">
+    Tracks execution time
+    - p95 latency > 500ms
+    - Timeout risks
+    - Optimization paths
+    - Caching opportunities
+  </Card>
+</CardGroup>
+
+### Optimization Suggestions
+
+<Tabs>
+  <Tab title="Add Pagination">
+    **Limit Result Sets**
+    
+    ```typescript
+    // ❌ Before: Fetching all messages
+    const messages = await ctx.db.query("messages")
+      .filter(q => q.eq(q.field("channel"), channel))
+      .collect();  // Could return thousands!
+    
+    // ✅ After: Paginated query
+    const messages = await ctx.db.query("messages")
+      .withIndex("by_channel", q => q.eq("channel", channel))
+      .order("desc")
+      .take(50);  // Only 50 most recent
+    ```
+    
+    **Impact**: Reduces query time by 90%+ for large tables
+  </Tab>
+  
+  <Tab title="Use Indexes">
+    **Leverage Index Ordering**
+    
+    ```typescript
+    // ❌ Before: Sorting without index
+    const messages = await ctx.db.query("messages")
+      .collect()
+      .sort((a, b) => b._creationTime - a._creationTime);  // In-memory sort
+    
+    // ✅ After: Index-based ordering
+    const messages = await ctx.db.query("messages")
+      .withIndex("by_creation_time")  // Uses index order
+      .order("desc")
+      .take(50);
+    ```
+    
+    **Impact**: Eliminates expensive in-memory sorting
+  </Tab>
+  
+  <Tab title="Batch Operations">
+    **Avoid N+1 Queries**
+    
+    ```typescript
+    // ❌ Before: N+1 pattern
+    const messages = await ctx.db.query("messages").collect();
+    for (const message of messages) {
+      const user = await ctx.db.get(message.userId);  // N queries!
+      // ...
+    }
+    
+    // ✅ After: Batch load
+    const messages = await ctx.db.query("messages").collect();
+    const userIds = [...new Set(messages.map(m => m.userId))];
+    const users = await Promise.all(
+      userIds.map(id => ctx.db.get(id))
+    );  // Parallel fetch
+    const userMap = new Map(users.map(u => [u._id, u]));
+    ```
+    
+    **Impact**: 10x-100x faster for large datasets
+  </Tab>
+  
+  <Tab title="Reduce Over-Fetching">
+    **Select Only Needed Fields**
+    
+    ```typescript
+    // ❌ Before: Fetching entire documents
+    const users = await ctx.db.query("users")
+      .collect();  // All fields, including large ones
+    
+    // ✅ After: Project specific fields (coming soon)
+    // For now, filter in application code:
+    const users = (await ctx.db.query("users").collect())
+      .map(u => ({ _id: u._id, name: u.name }));  // Only needed fields
+    ```
+    
+    **Impact**: Reduces bandwidth and memory usage
+  </Tab>
+</Tabs>
+
+## Schema Design Recommendations
+
+### Relationship Optimization
+
+<AccordionGroup>
+  <Accordion title="Denormalization Opportunities">
+    Suggests when to denormalize for performance:
+    
+    ```typescript
+    // Detected pattern: Frequently joining users for author name
+    
+    // Current schema:
+    messages: defineTable({
+      userId: v.id("users"),
+      text: v.string(),
+    })
+    
+    // Recommended: Add denormalized field
+    messages: defineTable({
+      userId: v.id("users"),
+      authorName: v.string(),  // Denormalized
+      text: v.string(),
+    })
+    
+    // Trade-off: Faster reads, slightly more complex writes
+    ```
+  </Accordion>
+  
+  <Accordion title="Normalization Suggestions">
+    Identifies over-denormalization:
+    
+    - Duplicate data across many tables
+    - Large embedded objects
+    - Inconsistency risks
+    - Suggests extraction to separate table
+  </Accordion>
+  
+  <Accordion title="Document Size Warnings">
+    Alerts for large documents:
+    
+    - Documents >16KB (approaching limit)
+    - Embedded arrays with many items
+    - Large string fields
+    - Suggests splitting into multiple documents
+  </Accordion>
+</AccordionGroup>
+
+### Field Type Optimization
+
+```typescript
+// Suboptimal type detected:
+messages: defineTable({
+  timestamp: v.string(),  // ⚠️ Storing number as string
+})
+
+// Recommended:
+messages: defineTable({
+  timestamp: v.number(),  // ✅ Proper numeric type
+})
+// Benefits: Better indexing, range queries, less storage
+```
+
+## Actionable Insights
+
+### Insight Categories
+
+<CardGroup cols={3}>
+  <Card title="Critical" icon="circle-exclamation">
+    🔴 Urgent issues
+    - Table scans on large tables
+    - Timeout risks
+    - Performance regressions
+  </Card>
+  <Card title="Warning" icon="triangle-exclamation">
+    🟡 Should address soon
+    - Suboptimal queries
+    - Missing indexes
+    - Inefficient patterns
+  </Card>
+  <Card title="Info" icon="circle-info">
+    🔵 Nice to have
+    - Optimization opportunities
+    - Best practice suggestions
+    - Code improvements
+  </Card>
+</CardGroup>
+
+### Insight Details
+
+Each insight includes:
+
+<Steps>
+  <Step title="Problem description">
+    Clear explanation of the issue
+  </Step>
+  <Step title="Location">
+    File, line number, and function name
+  </Step>
+  <Step title="Impact assessment">
+    Severity and performance impact
+  </Step>
+  <Step title="Recommendation">
+    Step-by-step fix instructions
+  </Step>
+  <Step title="Code example">
+    Before and after code samples
+  </Step>
+  <Step title="Expected improvement">
+    Estimated performance gain
+  </Step>
+</Steps>
+
+## Performance Tracking
+
+### Before/After Comparison
+
+```
+┌─ Query Performance Improvement ─────────────────────┐
+│                                                      │
+│  Before optimization:                                │
+│    • Execution time: 245ms (p50)                    │
+│    • Database reads: 1,234 documents                 │
+│    • Result size: 2.1 MB                            │
+│                                                      │
+│  After adding index:                                 │
+│    • Execution time: 12ms (p50)  ↓ 95%             │
+│    • Database reads: 45 documents  ↓ 96%           │
+│    • Result size: 89 KB  ↓ 96%                     │
+│                                                      │
+│  Impact: 20x faster, 96% less data transfer         │
+│                                                      │
+└─────────────────────────────────────────────────────┘
+```
+
+### Trend Analysis
+
+<CardGroup cols={2}>
+  <Card title="Performance Trends" icon="chart-line">
+    Track improvements over time
+    - Weekly performance reports
+    - Query latency trends
+    - Optimization history
+  </Card>
+  <Card title="Regression Detection" icon="arrow-down">
+    Alert on performance degradation
+    - Deploy-related slowdowns
+    - Query performance drops
+    - Automatic notifications
+  </Card>
+</CardGroup>
+
+## Integration Features
+
+### CI/CD Integration
+
+Run performance checks in your pipeline:
+
+```bash
+# Add to CI workflow
+npx convex-panel analyze-schema \
+  --fail-on-critical \
+  --report=performance.json
+
+# Fails build if critical issues found
+```
+
+### VS Code Extension
+
+Get real-time suggestions while coding:
+
+- Inline warnings for slow queries
+- Quick-fix actions
+- Index suggestions
+- Best practice tips
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Review regularly">
+    Check Performance Advisor:
+    - After every major feature
+    - Weekly during active development
+    - Before major releases
+    - When monitoring shows slowdowns
+  </Accordion>
+  
+  <Accordion title="Prioritize by impact">
+    Focus on:
+    1. Critical issues first
+    2. High-traffic queries
+    3. User-facing operations
+    4. Frequently-called functions
+  </Accordion>
+  
+  <Accordion title="Measure before and after">
+    - Note baseline metrics
+    - Apply one optimization at a time
+    - Measure improvement
+    - Document results
+  </Accordion>
+  
+  <Accordion title="Consider trade-offs">
+    Balance:
+    - Read vs write performance
+    - Storage vs speed
+    - Code complexity vs optimization
+    - Premature optimization risks
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="No recommendations shown">
+    - Wait for enough data collection (24-48 hours)
+    - Verify deployment connection
+    - Check if application has traffic
+    - Try refreshing the analysis
+  </Accordion>
+  
+  <Accordion title="Can't apply auto-fix">
+    - Ensure schema.ts file is writable
+    - Check file isn't open in editor
+    - Verify correct project directory
+    - Try manual fix if auto-fix fails
+  </Accordion>
+  
+  <Accordion title="Improvement not seen after fix">
+    - Wait for cache to clear (5-10 minutes)
+    - Verify index was created
+    - Check query is using new index
+    - Monitor for 15-30 minutes
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Health Metrics" icon="activity" href="/features/health-metrics">
+    Monitor real-time performance
+  </Card>
+  <Card title="Function Runner" icon="code" href="/features/function-runner">
+    Test optimized queries
+  </Card>
+  <Card title="Schema Visualizer" icon="diagram-project" href="/features/schema-visualizer">
+    Visualize schema relationships
+  </Card>
+  <Card title="Optimization Guide" icon="book" href="/features/performance-advisor">
+    Learn advanced optimization techniques
+  </Card>
+</CardGroup>

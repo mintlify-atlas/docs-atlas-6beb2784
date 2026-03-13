@@ -1,0 +1,367 @@
+---
+title: "Component Props"
+description: "TypeScript prop interfaces for Convex Panel components"
+---
+
+## ConvexPanelProps
+
+Main configuration interface for the `ConvexPanel` component.
+
+<ResponseField name="convex" type="ConvexReactClient">
+  Optional ConvexReactClient instance. If not provided, will attempt to use context.
+</ResponseField>
+
+<ResponseField name="accessToken" type="string">
+  Access token for authenticating with Convex deployment.
+</ResponseField>
+
+<ResponseField name="teamAccessToken" type="string">
+  Team-level access token for authentication.
+</ResponseField>
+
+<ResponseField name="deployUrl" type="string">
+  URL of the Convex deployment to connect to.
+</ResponseField>
+
+<ResponseField name="deployKey" type="string">
+  Deploy key for admin-level access to the deployment.
+</ResponseField>
+
+<ResponseField name="oauthConfig" type="object">
+  OAuth configuration for authentication flow.
+  
+  <Expandable title="properties">
+    <ResponseField name="clientId" type="string" required>
+      OAuth client ID.
+    </ResponseField>
+    
+    <ResponseField name="redirectUri" type="string" required>
+      OAuth redirect URI after authentication.
+    </ResponseField>
+    
+    <ResponseField name="scope" type="'team' | 'project'">
+      OAuth scope - either 'team' or 'project' level access.
+    </ResponseField>
+    
+    <ResponseField name="tokenExchangeUrl" type="string">
+      Custom URL for token exchange endpoint.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="auth" type="UseOAuthReturn">
+  Optional custom authentication implementation. If provided, internal OAuth logic is skipped.
+</ResponseField>
+
+<ResponseField name="useMockData" type="boolean" default={false}>
+  Whether to use mock data instead of real API calls.
+</ResponseField>
+
+<ResponseField name="mockup" type="boolean" default={false}>
+  Display panel in mockup mode without real data.
+</ResponseField>
+
+<ResponseField name="forceDisplay" type="boolean" default={false}>
+  Force display the panel even if not in development mode (useful for testing).
+</ResponseField>
+
+<ResponseField name="fullscreen" type="boolean" default={false}>
+  Display the panel in fullscreen mode, filling the entire viewport. Useful for desktop apps.
+</ResponseField>
+
+<ResponseField name="headerVisible" type="boolean" default={true}>
+  Whether to show the header. Useful for desktop apps to hide panel header.
+</ResponseField>
+
+<ResponseField name="teamSlug" type="string">
+  Slug identifier for the team.
+</ResponseField>
+
+<ResponseField name="projectSlug" type="string">
+  Slug identifier for the project.
+</ResponseField>
+
+<ResponseField name="team" type="Team">
+  Team object with id, name, and slug.
+</ResponseField>
+
+<ResponseField name="project" type="Project">
+  Project object with id, name, slug, and teamId.
+</ResponseField>
+
+<ResponseField name="defaultTheme" type="Theme" default="'dark'">
+  Initial theme for the panel. User's preference is persisted in localStorage.
+</ResponseField>
+
+<ResponseField name="customHeader" type="React.ReactNode">
+  Optional custom header component to render instead of the default header.
+</ResponseField>
+
+---
+
+## Component Prop Interfaces
+
+### ButtonProps
+
+Configuration for button components.
+
+```typescript
+interface ButtonProps {
+  convexUrl?: string;
+  initialLimit?: number;
+  initialShowSuccess?: boolean;
+  initialLogType?: LogType;
+  onLogFetch?: (logs: LogEntry[]) => void;
+  onError?: (error: string) => void;
+  theme?: ThemeClasses;
+  maxStoredLogs?: number;
+  convex?: ConvexReactClient;
+  oauthConfig?: OAuthConfig;
+  deployKey?: string;
+  accessToken?: string;
+  deployUrl?: string;
+  buttonPosition?: ButtonPosition;
+  useMockData?: boolean;
+}
+```
+
+### ContainerProps
+
+Props for the main container component.
+
+<ResponseField name="isOpen" type="boolean" required>
+  Whether the container is currently open.
+</ResponseField>
+
+<ResponseField name="toggleOpen" type="() => void" required>
+  Function to toggle the container open/closed state.
+</ResponseField>
+
+<ResponseField name="onToggle" type="(isOpen: boolean) => void">
+  Optional callback when container state changes.
+</ResponseField>
+
+<ResponseField name="convex" type="ConvexReactClient" required>
+  Convex client instance.
+</ResponseField>
+
+<ResponseField name="adminClient" type="ConvexClient | null" required>
+  Admin client for privileged operations.
+</ResponseField>
+
+<ResponseField name="initialActiveTab" type="TabTypes" required>
+  Initial tab to display.
+</ResponseField>
+
+<ResponseField name="accessToken" type="string" required>
+  Access token for authentication.
+</ResponseField>
+
+<ResponseField name="position" type="{ x: number; y: number }" required>
+  Current position of the container.
+</ResponseField>
+
+<ResponseField name="setPosition" type="function" required>
+  Function to update container position.
+</ResponseField>
+
+<ResponseField name="containerSize" type="{ width: number; height: number }" required>
+  Current size of the container.
+</ResponseField>
+
+<ResponseField name="setContainerSize" type="function" required>
+  Function to update container size.
+</ResponseField>
+
+---
+
+### DataTableProps
+
+Props for the data table component.
+
+```typescript
+interface DataTableProps {
+  convexUrl: string;
+  accessToken: string;
+  onError?: (error: string) => void;
+  theme?: ThemeClasses;
+  baseUrl: string;
+  convex: ConvexReactClient;
+  adminClient: ConvexClient | null;
+  settings?: ConvexPanelSettings;
+  useMockData?: boolean;
+}
+```
+
+### LogsContainerProps
+
+Props for the logs container view.
+
+<ResponseField name="mergedTheme" type="ThemeClasses" required>
+  Merged theme configuration.
+</ResponseField>
+
+<ResponseField name="isPaused" type="boolean" required>
+  Whether log streaming is paused.
+</ResponseField>
+
+<ResponseField name="togglePause" type="() => void" required>
+  Function to toggle pause state.
+</ResponseField>
+
+<ResponseField name="clearLogs" type="() => void" required>
+  Function to clear all logs.
+</ResponseField>
+
+<ResponseField name="refreshLogs" type="() => void" required>
+  Function to refresh logs.
+</ResponseField>
+
+<ResponseField name="filteredLogs" type="LogEntry[]" required>
+  Array of filtered log entries.
+</ResponseField>
+
+<ResponseField name="selectedLog" type="LogEntry | null" required>
+  Currently selected log entry.
+</ResponseField>
+
+<ResponseField name="handleLogSelect" type="(log: LogEntry) => void" required>
+  Function to handle log selection.
+</ResponseField>
+
+---
+
+### NetworkPanelProps
+
+Props for the network monitoring panel.
+
+```typescript
+interface NetworkPanelProps {
+  mergedTheme: ThemeClasses;
+  settings?: ConvexPanelSettings;
+  containerSize: { width: number; height: number };
+}
+```
+
+### HealthContainerProps
+
+Props for the health monitoring container.
+
+<ResponseField name="deploymentUrl" type="string" required>
+  URL of the deployment to monitor.
+</ResponseField>
+
+<ResponseField name="authToken" type="string" required>
+  Authentication token for API access.
+</ResponseField>
+
+<ResponseField name="convexVersion" type="string">
+  Version of Convex being monitored.
+</ResponseField>
+
+<ResponseField name="useMockData" type="boolean" default={false}>
+  Whether to use mock data for testing.
+</ResponseField>
+
+---
+
+## Chart Component Props
+
+### CacheHitRateChartProps
+
+```typescript
+interface CacheHitRateChartProps {
+  deploymentUrl: string;
+  authToken: string;
+  refreshInterval?: number;
+  useMockData?: boolean;
+}
+```
+
+### FailureRateChartProps
+
+```typescript
+interface FailureRateChartProps {
+  deploymentUrl: string;
+  authToken: string;
+  refreshInterval?: number;
+  useMockData?: boolean;
+}
+```
+
+### SchedulerLagChartProps
+
+```typescript
+interface SchedulerLagChartProps {
+  deploymentUrl: string;
+  authToken: string;
+  refreshInterval?: number;
+  showChart: boolean;
+  useMockData?: boolean;
+}
+```
+
+### SchedulerStatusProps
+
+```typescript
+interface SchedulerStatusProps {
+  status: 'on_time' | 'delayed' | 'error';
+  message: string;
+}
+```
+
+---
+
+## Filter Component Props
+
+### FilterMenuProps
+
+Props for the filter menu component.
+
+<ResponseField name="field" type="string" required>
+  Field name to filter on.
+</ResponseField>
+
+<ResponseField name="position" type="MenuPosition" required>
+  Position for the filter menu dropdown.
+</ResponseField>
+
+<ResponseField name="onApply" type="(filter: FilterClause) => void" required>
+  Callback when filter is applied.
+</ResponseField>
+
+<ResponseField name="onClose" type="() => void" required>
+  Callback to close the menu.
+</ResponseField>
+
+<ResponseField name="existingFilter" type="FilterClause">
+  Existing filter to edit.
+</ResponseField>
+
+<ResponseField name="theme" type="ThemeClasses">
+  Theme configuration.
+</ResponseField>
+
+### ActiveFiltersProps
+
+Props for displaying active filters.
+
+```typescript
+interface ActiveFiltersProps {
+  filters: FilterExpression;
+  onRemove: (field: string) => void;
+  onClearAll: () => void;
+  selectedTable: string;
+  theme?: ThemeClasses;
+  onEdit?: (e: React.MouseEvent, field: string) => void;
+}
+```
+
+### FilterDebugProps
+
+```typescript
+interface FilterDebugProps {
+  filters: FilterExpression;
+  selectedTable: string;
+}
+```

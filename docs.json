@@ -1,122 +1,130 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Convex Panel",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#f4b31c",
+    "light": "#8c2474",
+    "dark": "#ee342d"
   },
   "favicon": "/favicon.svg",
+  "logo": {
+    "light": "https://media.brand.dev/50ee7b90-48db-47a1-a908-e817262ed8d7.svg",
+    "dark": "https://media.brand.dev/50ee7b90-48db-47a1-a908-e817262ed8d7.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/robertalv/convex-panel"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/robertalv/convex-panel"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Get Started",
             "pages": [
-              "index",
-              "quickstart",
-              "development"
+              "introduction",
+              "installation",
+              "quickstart"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Platforms",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "platforms/desktop",
+              "platforms/npm-package",
+              "platforms/mobile",
+              "platforms/raycast"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Features",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "features/data-browser",
+              "features/logs",
+              "features/health-metrics",
+              "features/function-runner",
+              "features/schema-visualizer",
+              "features/file-storage",
+              "features/performance-advisor"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Configuration",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "configuration/authentication",
+              "configuration/oauth-setup",
+              "configuration/environment-variables",
+              "configuration/framework-integration"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/embedding-in-react",
+              "guides/nextjs-integration",
+              "guides/vite-integration",
+              "guides/troubleshooting"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "API Reference",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Components",
             "pages": [
-              "api-reference/introduction"
+              "api/components/convex-panel",
+              "api/components/views",
+              "api/components/auth-panel"
             ]
           },
           {
-            "group": "Endpoint examples",
+            "group": "Hooks",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api/hooks/use-oauth",
+              "api/hooks/use-theme",
+              "api/hooks/use-components"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/utilities/oauth",
+              "api/utilities/metrics",
+              "api/utilities/storage"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/props",
+              "api/types/data-structures"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI",
+        "groups": [
+          {
+            "group": "Commands",
+            "pages": [
+              "cli/setup",
+              "cli/usage"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

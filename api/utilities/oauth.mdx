@@ -1,0 +1,417 @@
+---
+title: OAuth Utilities
+description: OAuth 2.0 authentication utilities for Convex Panel
+---
+
+OAuth 2.0 utilities for authenticating with the Convex API. These functions implement the OAuth authorization code flow with PKCE (Proof Key for Code Exchange) for secure authentication.
+
+Based on: [Convex OAuth Applications Documentation](https://docs.convex.dev/platform-apis/oauth-applications)
+
+## Types
+
+### OAuthConfig
+
+Configuration object for OAuth authentication.
+
+<ResponseField name="clientId" type="string" required>
+  Your OAuth client ID from the Convex dashboard
+</ResponseField>
+
+<ResponseField name="clientSecret" type="string">
+  Client secret for server-side token exchange (server-side only)
+</ResponseField>
+
+<ResponseField name="redirectUri" type="string" required>
+  The redirect URI registered with your OAuth application
+</ResponseField>
+
+<ResponseField name="scope" type="TokenScope">
+  Token scope: `'team'` or `'project'` (defaults to `'project'`)
+</ResponseField>
+
+<ResponseField name="tokenExchangeUrl" type="string">
+  Server-side endpoint URL for token exchange. Required for browser-based applications due to CORS restrictions.
+</ResponseField>
+
+### OAuthToken
+
+Represents an OAuth access token.
+
+<ResponseField name="access_token" type="string">
+  The OAuth access token
+</ResponseField>
+
+<ResponseField name="token_type" type="'bearer'">
+  Token type (always `'bearer'`)
+</ResponseField>
+
+<ResponseField name="expires_at" type="number">
+  Expiration timestamp in milliseconds
+</ResponseField>
+
+### TokenScope
+
+```typescript
+type TokenScope = 'team' | 'project';
+```
+
+## Functions
+
+### buildAuthorizationUrl
+
+Builds the OAuth authorization URL to redirect users to Convex for authentication.
+
+```typescript
+async function buildAuthorizationUrl(
+  config: OAuthConfig,
+  state?: string
+): Promise<string>
+```
+
+<ParamField path="config" type="OAuthConfig" required>
+  OAuth configuration object
+</ParamField>
+
+<ParamField path="state" type="string">
+  Optional state parameter for CSRF protection. If not provided, one will be generated automatically.
+</ParamField>
+
+**Returns:** Promise resolving to the authorization URL
+
+<Card title="Example" icon="code">
+```typescript
+import { buildAuthorizationUrl } from 'convex-panel';
+
+const config = {
+  clientId: 'your-client-id',
+  redirectUri: 'http://localhost:3000/callback',
+  scope: 'project',
+  tokenExchangeUrl: 'http://localhost:3000/api/convex/exchange'
+};
+
+const authUrl = await buildAuthorizationUrl(config);
+// Redirect user to authUrl
+window.location.href = authUrl;
+```
+</Card>
+
+### exchangeCodeForToken
+
+Exchanges an authorization code for an access token.
+
+```typescript
+async function exchangeCodeForToken(
+  code: string,
+  config: OAuthConfig,
+  codeVerifier?: string
+): Promise<OAuthToken>
+```
+
+<ParamField path="code" type="string" required>
+  Authorization code received from the OAuth callback
+</ParamField>
+
+<ParamField path="config" type="OAuthConfig" required>
+  OAuth configuration object
+</ParamField>
+
+<ParamField path="codeVerifier" type="string">
+  PKCE code verifier (automatically retrieved from storage if not provided)
+</ParamField>
+
+**Returns:** Promise resolving to an OAuthToken
+
+<Note>
+  For browser-based applications, you **must** provide a `tokenExchangeUrl` in the config to avoid CORS issues. The token exchange should happen server-side.
+</Note>
+
+<Card title="Example" icon="code">
+```typescript
+import { exchangeCodeForToken } from 'convex-panel';
+
+const token = await exchangeCodeForToken(
+  'authorization-code',
+  config
+);
+console.log('Access token:', token.access_token);
+```
+</Card>
+
+### handleOAuthCallback
+
+Handles the OAuth callback, verifies state, and exchanges the code for a token.
+
+```typescript
+async function handleOAuthCallback(
+  config: OAuthConfig
+): Promise<OAuthToken | null>
+```
+
+<ParamField path="config" type="OAuthConfig" required>
+  OAuth configuration object
+</ParamField>
+
+**Returns:** Promise resolving to an OAuthToken or null if no code is present
+
+<Card title="Example" icon="code">
+```typescript
+import { handleOAuthCallback } from 'convex-panel';
+
+// In your OAuth callback route/component
+const token = await handleOAuthCallback(config);
+if (token) {
+  console.log('Successfully authenticated!');
+  // Token is automatically stored
+}
+```
+</Card>
+
+<Note>
+  This function automatically:
+  - Verifies the OAuth state parameter
+  - Retrieves the PKCE code verifier from storage
+  - Exchanges the code for a token
+  - Stores the token using `storeToken()`
+  - Cleans up the URL by removing query parameters
+  - Prevents duplicate exchanges in React StrictMode
+</Note>
+
+### generateState
+
+Generates a random state string for OAuth CSRF protection.
+
+```typescript
+function generateState(): string
+```
+
+**Returns:** A random 64-character hexadecimal string
+
+<Card title="Example" icon="code">
+```typescript
+import { generateState } from 'convex-panel';
+
+const state = generateState();
+console.log(state); // "a3f2b1c4..."
+```
+</Card>
+
+### generatePKCE
+
+Generates PKCE (Proof Key for Code Exchange) code verifier and challenge.
+
+```typescript
+async function generatePKCE(): Promise<{
+  codeVerifier: string;
+  codeChallenge: string;
+}>
+```
+
+**Returns:** Promise resolving to an object with `codeVerifier` and `codeChallenge`
+
+<Card title="Example" icon="code">
+```typescript
+import { generatePKCE } from 'convex-panel';
+
+const { codeVerifier, codeChallenge } = await generatePKCE();
+console.log('Verifier:', codeVerifier);
+console.log('Challenge:', codeChallenge);
+```
+</Card>
+
+## Token Storage
+
+### storeToken
+
+Stores an OAuth token in localStorage.
+
+```typescript
+function storeToken(token: OAuthToken): void
+```
+
+<ParamField path="token" type="OAuthToken" required>
+  The token to store
+</ParamField>
+
+### getStoredToken
+
+Retrieves the stored OAuth token from localStorage.
+
+```typescript
+function getStoredToken(): OAuthToken | null
+```
+
+**Returns:** The stored token or null if not found or expired
+
+<Card title="Example" icon="code">
+```typescript
+import { getStoredToken } from 'convex-panel';
+
+const token = getStoredToken();
+if (token) {
+  // Use the token for API calls
+  console.log('Token:', token.access_token);
+} else {
+  // Redirect to OAuth flow
+}
+```
+</Card>
+
+### clearToken
+
+Clears the stored OAuth token and related data from storage.
+
+```typescript
+function clearToken(): void
+```
+
+<Card title="Example" icon="code">
+```typescript
+import { clearToken } from 'convex-panel';
+
+// On logout
+function handleLogout() {
+  clearToken();
+  window.location.href = '/login';
+}
+```
+</Card>
+
+### getStoredCodeVerifier
+
+Retrieves the stored PKCE code verifier from sessionStorage.
+
+```typescript
+function getStoredCodeVerifier(): string | null
+```
+
+**Returns:** The stored code verifier or null if not found
+
+## Complete OAuth Flow Example
+
+<CodeGroup>
+```typescript Client Component
+import { buildAuthorizationUrl, getStoredToken } from 'convex-panel';
+
+const config = {
+  clientId: process.env.NEXT_PUBLIC_CONVEX_CLIENT_ID!,
+  redirectUri: `${window.location.origin}/auth/callback`,
+  scope: 'project',
+  tokenExchangeUrl: '/api/convex/exchange'
+};
+
+export function LoginButton() {
+  const handleLogin = async () => {
+    const authUrl = await buildAuthorizationUrl(config);
+    window.location.href = authUrl;
+  };
+
+  return <button onClick={handleLogin}>Login with Convex</button>;
+}
+```
+
+```typescript OAuth Callback Page
+import { useEffect, useState } from 'react';
+import { handleOAuthCallback } from 'convex-panel';
+
+const config = {
+  clientId: process.env.NEXT_PUBLIC_CONVEX_CLIENT_ID!,
+  redirectUri: `${window.location.origin}/auth/callback`,
+  tokenExchangeUrl: '/api/convex/exchange'
+};
+
+export default function CallbackPage() {
+  const [status, setStatus] = useState('Authenticating...');
+
+  useEffect(() => {
+    handleOAuthCallback(config)
+      .then((token) => {
+        if (token) {
+          setStatus('Success!');
+          // Redirect to app
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1000);
+        } else {
+          setStatus('No authorization code found');
+        }
+      })
+      .catch((error) => {
+        setStatus(`Error: ${error.message}`);
+      });
+  }, []);
+
+  return <div>{status}</div>;
+}
+```
+
+```typescript Server-Side Token Exchange
+// /api/convex/exchange
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { code, codeVerifier, redirectUri, clientId } = req.body;
+
+  const body = new URLSearchParams({
+    client_id: clientId,
+    client_secret: process.env.CONVEX_CLIENT_SECRET!,
+    grant_type: 'authorization_code',
+    redirect_uri: redirectUri,
+    code,
+    ...(codeVerifier && { code_verifier: codeVerifier }),
+  });
+
+  try {
+    const response = await fetch(
+      'https://api.convex.dev/oauth/exchange',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: body.toString(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.text();
+      return res.status(response.status).json({ error });
+    }
+
+    const token = await response.json();
+    return res.status(200).json(token);
+  } catch (error) {
+    return res.status(500).json({ 
+      error: 'Failed to exchange token' 
+    });
+  }
+}
+```
+</CodeGroup>
+
+## Security Notes
+
+<Warning>
+  - Always use PKCE for public clients (browser-based apps)
+  - Never expose your client secret in client-side code
+  - Implement proper state validation to prevent CSRF attacks
+  - Use HTTPS in production for redirect URIs
+  - Store tokens securely and handle expiration properly
+</Warning>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="useOAuth Hook" icon="react" href="/api/hooks/use-oauth">
+    React hook for OAuth authentication
+  </Card>
+  <Card title="Convex OAuth Docs" icon="book" href="https://docs.convex.dev/platform-apis/oauth-applications">
+    Official Convex OAuth documentation
+  </Card>
+</CardGroup>

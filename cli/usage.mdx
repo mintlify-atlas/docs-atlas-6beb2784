@@ -1,0 +1,497 @@
+---
+title: 'CLI Usage'
+description: 'Learn how to use the Convex Panel CLI commands'
+---
+
+## Command Overview
+
+The Convex Panel CLI provides a single command for setting up your project:
+
+```bash
+convex-panel setup
+```
+
+This interactive command handles all configuration needed to get started with Convex Panel.
+
+## CLI Entry Point
+
+The CLI is implemented in `bin/convex-panel.js` and registered in package.json:174:
+
+```json
+"bin": {
+  "convex-panel": "./bin/convex-panel.js"
+}
+```
+
+## Command Structure
+
+The CLI accepts a single command argument (bin/convex-panel.js:11):
+
+```javascript
+const command = process.argv[2];
+```
+
+### Valid Commands
+
+- `setup` - Run the interactive setup process
+- No argument - Display help message
+- Any other argument - Display error and help message
+
+## Setup Command
+
+When you run `convex-panel setup`, it executes two scripts sequentially (bin/convex-panel.js:18-30):
+
+<Steps>
+  <Step title="OAuth Setup">
+    First runs `setup-oauth.js` to configure HTTP routes
+    
+    ```javascript
+    const setupOAuth = spawn('node', [setupOAuthPath], { 
+      stdio: 'inherit', 
+      cwd: process.cwd() 
+    });
+    ```
+  </Step>
+
+  <Step title="Environment Setup">
+    On successful OAuth setup, runs `setup-env.js` to configure environment variables
+    
+    ```javascript
+    setupOAuth.on('close', (code) => {
+      if (code !== 0) process.exit(code);
+      const setupEnv = spawn('node', [setupEnvPath], { 
+        stdio: 'inherit', 
+        cwd: process.cwd() 
+      });
+    });
+    ```
+  </Step>
+</Steps>
+
+<Note>
+Both scripts must complete successfully. If OAuth setup fails, environment setup won't run.
+</Note>
+
+## OAuth Setup Details
+
+### File Detection
+
+The OAuth setup script intelligently detects your working directory (setup-oauth.js:25-46):
+
+```javascript
+const currentDirName = path.basename(currentDir);
+
+if (currentDirName === "convex") {
+  // Work with http.ts directly
+  httpPath = path.join(currentDir, "http.ts");
+} else {
+  // Work with convex/http.ts from project root
+  httpPath = path.join(currentDir, "convex", "http.ts");
+}
+```
+
+### Import Management
+
+The script ensures required imports are present without duplication:
+
+<CodeGroup>
+```typescript httpRouter Import
+// Adds or updates import from convex/server
+import { httpRouter } from "convex/server";
+```
+
+```typescript httpAction Import
+// Adds or updates import from generated server
+import { httpAction } from "./_generated/server";
+```
+</CodeGroup>
+
+Implementation: setup-oauth.js:95-144
+
+### HTTP Router Initialization
+
+Ensures a single `httpRouter` instance exists (setup-oauth.js:147-159):
+
+```typescript
+const http = httpRouter();
+```
+
+### OAuth Handlers
+
+The setup injects two HTTP action handlers:
+
+<CardGroup cols={2}>
+  <Card title="exchangeOAuthCode" icon="code">
+    POST handler for OAuth token exchange
+    
+    **Features:**
+    - CORS support with dynamic origin
+    - Request body validation
+    - Environment variable fallbacks
+    - Error handling and formatting
+    
+    **Implementation:** setup-oauth.js:184-336
+  </Card>
+  
+  <Card title="preflightOAuthExchange" icon="paper-plane">
+    OPTIONS handler for CORS preflight
+    
+    **Features:**
+    - Dynamic CORS headers
+    - Origin variation support
+    - 24-hour max age
+    
+    **Implementation:** setup-oauth.js:338-357
+  </Card>
+</CardGroup>
+
+### Route Registration
+
+The script registers both routes before the `export default http;` statement (setup-oauth.js:359-369):
+
+```typescript
+http.route({
+  path: "/oauth/exchange",
+  method: "POST",
+  handler: exchangeOAuthCode,
+});
+
+http.route({
+  path: "/oauth/exchange",
+  method: "OPTIONS",
+  handler: preflightOAuthExchange,
+});
+```
+
+### Idempotency
+
+The setup is safe to run multiple times (setup-oauth.js:86-91):
+
+```javascript
+if (httpContent.includes(OAUTH_MARKER) || httpContent.includes(ROUTE_MARKER)) {
+  console.log(
+    "[convex-panel] OAuth HTTP action already present in convex/http.ts; no changes made."
+  );
+  return;
+}
+```
+
+## Environment Setup Details
+
+### Framework Detection
+
+The script detects your framework from existing environment variables (setup-env.js:434-476):
+
+```javascript
+const hasVite = map.has("VITE_CONVEX_URL");
+const hasNext = map.has("NEXT_PUBLIC_CONVEX_URL");
+
+if (hasVite && !hasNext) {
+  prefix = "VITE_";
+  printInfo(`Detected Vite framework...`);
+} else if (hasNext && !hasVite) {
+  prefix = "NEXT_PUBLIC_";
+  printInfo(`Detected Next.js framework...`);
+} else {
+  // Prompt user to select
+}
+```
+
+### Interactive Framework Selection
+
+If detection fails, users can select their framework using an interactive menu (setup-env.js:445-450):
+
+<CodeGroup>
+```bash
+Select your framework:
+  → Vite
+    Next.js
+    React (Create React App)
+    Other
+
+Use ↑↓ arrows or numbers (1-4) to select, Enter/Space to confirm
+```
+</CodeGroup>
+
+**Controls:**
+- Arrow keys (↑↓) to navigate
+- Number keys (1-4) for direct selection
+- Vim keys (j/k) for navigation
+- Enter or Space to confirm
+- Ctrl+C to exit
+
+Implementation: setup-env.js:91-357
+
+### Environment Variables
+
+The script prompts for each required variable if not already set:
+
+<Tabs>
+  <Tab title="CONVEX_URL">
+    **Variable:** `{PREFIX}CONVEX_URL`
+    
+    Your Convex deployment URL.
+    
+    ```bash
+    → Convex deployment URL (e.g. https://your-deployment.convex.cloud) 
+      for VITE_CONVEX_URL: 
+    ```
+    
+    **Implementation:** setup-env.js:482-494
+  </Tab>
+  
+  <Tab title="OAUTH_CLIENT_ID">
+    **Variable:** `{PREFIX}OAUTH_CLIENT_ID`
+    
+    OAuth client ID from Convex dashboard.
+    
+    ```bash
+    ℹ Get your OAuth Client ID from: https://dashboard.convex.dev
+    → OAuth Client ID (from Convex dashboard) for VITE_OAUTH_CLIENT_ID: 
+    ```
+    
+    **Implementation:** setup-env.js:497-511
+  </Tab>
+  
+  <Tab title="CONVEX_CLIENT_SECRET">
+    **Variable:** `CONVEX_CLIENT_SECRET` (no prefix)
+    
+    OAuth client secret from Convex dashboard.
+    
+    ```bash
+    ℹ Get your OAuth Client Secret from: https://dashboard.convex.dev
+    → OAuth Client Secret (from Convex dashboard) for CONVEX_CLIENT_SECRET: 
+    ```
+    
+    <Warning>
+    This value should not be prefixed, as it's used in Convex backend functions.
+    </Warning>
+    
+    **Implementation:** setup-env.js:514-527
+  </Tab>
+  
+  <Tab title="CONVEX_TOKEN_EXCHANGE_URL">
+    **Variable:** `{PREFIX}CONVEX_TOKEN_EXCHANGE_URL`
+    
+    The URL for your OAuth token exchange endpoint.
+    
+    ```bash
+    → Token Exchange URL (press Enter to use suggested) 
+      https://your-deployment.convex.site/oauth/exchange: 
+    ```
+    
+    **Auto-suggestion:** The script automatically generates the correct URL by replacing `.convex.cloud` with `.convex.site` and appending `/oauth/exchange` (setup-env.js:535-562).
+    
+    ```javascript
+    const suggestedSite = convexUrl.includes(".convex.cloud")
+      ? convexUrl.replace(".convex.cloud", ".convex.site") + "/oauth/exchange"
+      : "";
+    ```
+  </Tab>
+  
+  <Tab title="CONVEX_ACCESS_TOKEN">
+    **Variable:** `CONVEX_ACCESS_TOKEN` (no prefix)
+    
+    Your personal Convex access token for API access.
+    
+    ```bash
+    ℹ Get your access token from: 
+      https://dashboard.convex.dev/t/{team_name}/settings/access-tokens
+    → Convex Access Token (from Convex dashboard) for CONVEX_ACCESS_TOKEN 
+      (optional, press Enter to skip): 
+    ```
+    
+    <Note>
+    This field is optional. If skipped, a comment with instructions will be added to your `.env` file.
+    </Note>
+    
+    **Implementation:** setup-env.js:565-596
+  </Tab>
+</Tabs>
+
+### File Writing
+
+The script safely appends new variables to your environment file (setup-env.js:605-622):
+
+```javascript
+const newContent =
+  (envContent ? envContent.replace(/\s*$/, "") + "\n" : "") +
+  updates.join("\n") +
+  "\n";
+
+await fs.writeFile(envPath, newContent, "utf8");
+```
+
+## Help Message
+
+Running `convex-panel` without arguments displays the help message (bin/convex-panel.js:32-39):
+
+```bash
+Convex Panel CLI
+
+Usage:
+  convex-panel setup    Run interactive setup (OAuth + environment variables)
+```
+
+## Error Handling
+
+### Unknown Command
+
+Invalid commands display an error (bin/convex-panel.js:41-48):
+
+```bash
+Unknown command: invalid-command
+
+Usage:
+  convex-panel setup    Run interactive setup (OAuth + environment variables)
+```
+
+### Script Failures
+
+Both setup scripts include error handling:
+
+<CodeGroup>
+```javascript OAuth Setup
+main().catch((err) => {
+  console.error("[convex-panel] setup-http-oauth failed:", err);
+  process.exit(1);
+});
+```
+
+```javascript Environment Setup
+main().catch((err) => {
+  console.error("setup-env failed:", err);
+  process.exit(1);
+});
+```
+</CodeGroup>
+
+## Package Scripts
+
+The package.json defines several npm scripts for CLI operations (package.json:57-69):
+
+```json
+{
+  "scripts": {
+    "setup:oauth": "node scripts/setup-oauth.js",
+    "setup:env": "node scripts/setup-env.js",
+    "setup": "npm run setup:oauth && npm run setup:env"
+  }
+}
+```
+
+## Advanced Usage
+
+### Running from Project Root
+
+```bash
+cd my-convex-project
+convex-panel setup
+```
+
+The script will create or modify `convex/http.ts` in your project.
+
+### Running from Convex Directory
+
+```bash
+cd my-convex-project/convex
+convex-panel setup
+```
+
+The script will create or modify `http.ts` in the current directory.
+
+### Re-running Setup
+
+You can safely re-run setup at any time:
+
+```bash
+convex-panel setup
+```
+
+<Info>
+The setup is idempotent - it won't duplicate OAuth routes or overwrite existing environment variables.
+</Info>
+
+## Environment File Priority
+
+The setup script follows this priority order (setup-env.js:378-389):
+
+1. `.env.local` (if exists)
+2. `.env` (if exists)
+3. Creates `.env.local` (if neither exists)
+
+```javascript
+async function pickEnvFile(cwd) {
+  const candidates = [".env.local", ".env"];
+  for (const name of candidates) {
+    const full = path.join(cwd, name);
+    try {
+      await fs.access(full);
+      return full;
+    } catch {}
+  }
+  return path.join(cwd, ".env.local");
+}
+```
+
+## Terminal Colors and Formatting
+
+The CLI uses ANSI color codes for better readability (setup-env.js:59-75):
+
+```javascript
+const colors = {
+  reset: "\x1b[0m",
+  bright: "\x1b[1m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  blue: "\x1b[34m",
+  cyan: "\x1b[36m",
+  gray: "\x1b[90m",
+};
+```
+
+**Status Indicators:**
+- ✓ (green) - Success messages
+- ℹ (blue) - Informational messages  
+- ⚠ (yellow) - Warning messages
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Run Once" icon="check">
+    Run setup once per project. Re-running is safe but unnecessary unless you need to update configuration.
+  </Card>
+  
+  <Card title="Commit OAuth Routes" icon="git-alt">
+    Commit the modified `convex/http.ts` to version control so team members have the OAuth routes.
+  </Card>
+  
+  <Card title="Protect Secrets" icon="shield">
+    Never commit `.env.local` or `.env` files. Add them to `.gitignore`.
+  </Card>
+  
+  <Card title="Deploy Changes" icon="rocket">
+    Run `npx convex deploy` after setup to deploy the new OAuth routes to your Convex backend.
+  </Card>
+</CardGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Installation" icon="download" href="/installation">
+    Learn about different installation methods
+  </Card>
+  
+  <Card title="Vite Integration" icon="bolt" href="/guides/vite-integration">
+    Integrate with Vite projects
+  </Card>
+  
+  <Card title="Next.js Integration" icon="n" href="/guides/nextjs-integration">
+    Integrate with Next.js projects
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/configuration/framework-integration">
+    Explore configuration options
+  </Card>
+</CardGroup>

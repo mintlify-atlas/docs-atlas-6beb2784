@@ -1,0 +1,272 @@
+---
+title: AuthPanel
+description: Authentication interface for connecting to Convex
+---
+
+The `AuthPanel` component provides a user-friendly interface for authenticating with Convex using OAuth. It displays connection instructions, handles the OAuth flow, and shows setup instructions when needed.
+
+## Import
+
+```tsx
+import { AuthPanel } from 'convex-panel';
+```
+
+## Usage
+
+The `AuthPanel` is typically used internally by `ConvexPanel`, but can be used standalone:
+
+```tsx
+import { AuthPanel } from 'convex-panel';
+import { useOAuth } from 'convex-panel';
+
+function MyAuthFlow() {
+  const oauth = useOAuth({
+    clientId: 'your-client-id',
+    redirectUri: 'http://localhost:3000',
+  });
+
+  return (
+    <AuthPanel
+      oauthConfig={{
+        clientId: 'your-client-id',
+        redirectUri: 'http://localhost:3000',
+      }}
+      onConnect={oauth.authenticate}
+      error={oauth.error}
+      isLoading={oauth.isLoading}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="oauthConfig" type="object">
+  OAuth configuration object.
+  
+  <Expandable title="properties">
+    <ParamField path="clientId" type="string" required>
+      OAuth client ID from your Convex dashboard.
+    </ParamField>
+    
+    <ParamField path="redirectUri" type="string" required>
+      Redirect URI configured in your OAuth app.
+    </ParamField>
+    
+    <ParamField path="scope" type="'team' | 'project'">
+      OAuth scope for access level.
+    </ParamField>
+    
+    <ParamField path="tokenExchangeUrl" type="string">
+      Custom token exchange endpoint.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="onConnect" type="() => void | Promise<void>">
+  Callback function triggered when the user clicks the "Connect Convex" button.
+</ParamField>
+
+<ParamField path="error" type="string | null">
+  Error message to display if authentication fails.
+</ParamField>
+
+<ParamField path="isLoading" type="boolean">
+  Loading state to display during authentication.
+</ParamField>
+
+<ParamField path="deploymentUrl" type="string">
+  Convex deployment URL for context in setup instructions.
+</ParamField>
+
+<ParamField path="teamSlug" type="string">
+  Team slug for team-specific instructions.
+</ParamField>
+
+<ParamField path="projectSlug" type="string">
+  Project slug for project-specific instructions.
+</ParamField>
+
+<ParamField path="accessToken" type="string">
+  Current access token (if already authenticated).
+</ParamField>
+
+## Features
+
+### OAuth Flow
+
+The AuthPanel handles the complete OAuth flow:
+
+1. Displays a "Connect Convex" button
+2. Redirects to Convex dashboard for authorization
+3. Handles the OAuth callback
+4. Stores the access token securely
+
+### Setup Instructions
+
+When OAuth config is missing or needs configuration, the panel shows:
+
+- Requirements for OAuth setup
+- Step-by-step configuration guide
+- Environment variable examples
+- Direct links to Convex dashboard
+
+### Security Features
+
+- Token validation before connecting
+- Secure token storage in browser
+- Scoped permissions (project or team level)
+- Clear disconnect/logout functionality
+
+## States
+
+### Not Configured
+
+When `oauthConfig` is not provided:
+
+```tsx
+<AuthPanel
+  deploymentUrl="https://your-deployment.convex.cloud"
+/>
+```
+
+Shows:
+- Missing configuration message
+- Button to view setup instructions
+- Requirements for OAuth configuration
+
+### Ready to Connect
+
+When properly configured but not authenticated:
+
+```tsx
+<AuthPanel
+  oauthConfig={{
+    clientId: 'your-client-id',
+    redirectUri: 'http://localhost:3000',
+  }}
+  onConnect={handleConnect}
+/>
+```
+
+Shows:
+- "Connect Convex" button
+- How it works explanation
+- Security & privacy information
+- Setup instructions button
+
+### Loading
+
+During authentication:
+
+```tsx
+<AuthPanel
+  oauthConfig={config}
+  onConnect={handleConnect}
+  isLoading={true}
+/>
+```
+
+Shows:
+- Loading spinner
+- "Connecting..." message
+- Disabled buttons
+
+### Error State
+
+When authentication fails:
+
+```tsx
+<AuthPanel
+  oauthConfig={config}
+  onConnect={handleConnect}
+  error="Authentication failed: Invalid credentials"
+/>
+```
+
+Shows:
+- Error message banner
+- Option to retry
+- Link to troubleshooting
+
+## Example: Custom Auth Flow
+
+```tsx
+import { AuthPanel, useOAuth } from 'convex-panel';
+import { useState } from 'react';
+
+function CustomAuthPage() {
+  const [showPanel, setShowPanel] = useState(true);
+  
+  const oauth = useOAuth({
+    clientId: process.env.REACT_APP_CONVEX_OAUTH_CLIENT_ID!,
+    redirectUri: window.location.origin,
+    scope: 'project',
+  });
+
+  if (oauth.isAuthenticated) {
+    return <div>Successfully authenticated! Token: {oauth.token?.access_token.slice(0, 10)}...</div>;
+  }
+
+  return (
+    <div style={{ padding: '2rem' }}>
+      <h1>Connect to Convex</h1>
+      {showPanel && (
+        <AuthPanel
+          oauthConfig={{
+            clientId: process.env.REACT_APP_CONVEX_OAUTH_CLIENT_ID!,
+            redirectUri: window.location.origin,
+            scope: 'project',
+          }}
+          onConnect={async () => {
+            await oauth.authenticate();
+          }}
+          error={oauth.error}
+          isLoading={oauth.isLoading}
+        />
+      )}
+    </div>
+  );
+}
+```
+
+## Setup Instructions Modal
+
+The AuthPanel includes a built-in setup instructions modal that shows:
+
+- OAuth app creation steps
+- Required scopes and permissions
+- Environment variable configuration
+- Code examples for different frameworks (Next.js, Vite, etc.)
+- Troubleshooting common issues
+
+Users can access this by clicking the "Setup Instructions" button.
+
+## Styling
+
+The AuthPanel uses CSS custom properties for theming:
+
+```css
+:root {
+  --color-primary: #3b82f6;
+  --color-panel-bg: #1a1a1a;
+  --color-panel-text: #ffffff;
+  --color-panel-text-secondary: #888888;
+  --color-panel-border: #333333;
+  --color-panel-error: #ef4444;
+}
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="useOAuth Hook" icon="webhook" href="/api/hooks/use-oauth">
+    React hook for OAuth authentication
+  </Card>
+  <Card title="ConvexPanel" icon="window" href="/api/components/convex-panel">
+    Main panel component that uses AuthPanel
+  </Card>
+  <Card title="OAuth Setup" icon="key" href="/configuration/oauth-setup">
+    Complete guide to setting up OAuth
+  </Card>
+</CardGroup>

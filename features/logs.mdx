@@ -1,0 +1,366 @@
+---
+title: Logs
+description: Debug and monitor your Convex functions with real-time log streaming
+icon: scroll-text
+---
+
+The Logs view provides real-time streaming of function execution logs, errors, and debug information from your Convex deployment.
+
+## Overview
+
+Logs are essential for debugging and monitoring your application. Convex Panel's log viewer combines real-time streaming with powerful filtering and search capabilities to help you quickly identify and resolve issues.
+
+## Key Features
+
+### Real-Time Log Streaming
+
+<CardGroup cols={2}>
+  <Card title="Live Updates" icon="bolt">
+    Logs stream in real-time as functions execute
+  </Card>
+  <Card title="Auto-Scroll" icon="arrow-down">
+    Automatically scrolls to show latest logs
+  </Card>
+  <Card title="Pause/Resume" icon="pause">
+    Pause streaming to inspect specific entries
+  </Card>
+  <Card title="Auto-Pause" icon="hand">
+    Automatically pauses when you scroll up
+  </Card>
+</CardGroup>
+
+### Log Filtering
+
+Filter logs by multiple criteria:
+
+<Tabs>
+  <Tab title="By Component">
+    **Component Filter**
+    
+    Filter logs by Convex component:
+    - App (main application)
+    - Individual components
+    - Multiple components at once
+    - Select all or specific ones
+    
+    <Note>
+      Component filtering is useful for monorepo setups or apps using Convex components.
+    </Note>
+  </Tab>
+  
+  <Tab title="By Function">
+    **Function Filter**
+    
+    Show logs from specific functions:
+    - Single function selection
+    - Multiple functions at once
+    - Auto-complete function names
+    - Filter by queries, mutations, or actions
+    
+    ```typescript
+    // Example: Filter by function type
+    Functions: ["api/messages:send", "api/users:get"]
+    ```
+  </Tab>
+  
+  <Tab title="By Log Type">
+    **Log Level Filter**
+    
+    Filter by severity or status:
+    - **Success**: Completed executions (HTTP 200)
+    - **Failure**: Errors and exceptions
+    - **Debug**: Debug-level console.log
+    - **Info/Log**: Standard console.log
+    - **Warn**: Warnings
+    - **Error**: Error-level logs
+  </Tab>
+  
+  <Tab title="By Search">
+    **Text Search**
+    
+    Search across all log content:
+    - Function names
+    - Error messages
+    - Request IDs
+    - Log output
+    - Stack traces
+    
+    <Tip>
+      Use Cmd/Ctrl+F to quickly focus the search box.
+    </Tip>
+  </Tab>
+</Tabs>
+
+### Log Entry Details
+
+Click any log entry to view detailed information:
+
+<AccordionGroup>
+  <Accordion title="Execution Tab">
+    View function execution details:
+    - **Timestamp**: When the function executed
+    - **Duration**: Execution time in milliseconds
+    - **Status**: Success, failure, or cached
+    - **Request ID**: Unique execution identifier
+    - **Function Path**: Full function identifier
+    - **Environment**: Runtime environment info
+  </Accordion>
+  
+  <Accordion title="Request Tab">
+    Inspect the function invocation:
+    - **Arguments**: Input parameters (formatted JSON)
+    - **Return Value**: Function output
+    - **Identity**: User/system identity
+    - **Caller**: HTTP, mutation, query, or action caller
+    - **Component**: Which component executed this
+  </Accordion>
+  
+  <Accordion title="Resources Tab">
+    Monitor resource usage:
+    - **Memory Used**: MB consumed during execution
+    - **Compute**: GB-hours calculation
+    - **Database Reads**: Bytes and document count
+    - **Database Writes**: Bytes written
+    - **Storage I/O**: File storage read/write
+    - **Vector Operations**: Vector index usage
+  </Accordion>
+  
+  <Accordion title="AI Analysis Tab">
+    Get intelligent error analysis:
+    - **Root Cause**: AI-identified error source
+    - **Fix Suggestions**: Recommended solutions
+    - **Code Examples**: How to implement fixes
+    - **Related Errors**: Similar issues in your logs
+    
+    <Note>
+      AI analysis requires AI features to be enabled in settings.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+### Log Output
+
+View console.log output from your functions:
+
+```typescript
+// In your Convex function:
+export const myFunction = mutation(async (ctx, args) => {
+  console.log("Processing request:", args);
+  console.warn("Deprecated field used");
+  console.error("Validation failed", error);
+  
+  // These appear in the logs view with proper formatting
+});
+```
+
+### Historical Log Storage
+
+Access past logs beyond the current session:
+
+- **SQLite storage**: Logs saved locally for offline access
+- **Search history**: Find logs from previous executions
+- **Date range filtering**: View logs from specific time periods
+- **Persistent across restarts**: Logs survive app restarts
+
+<Tip>
+  Configure log retention in Settings > Filter History Settings.
+</Tip>
+
+## Live Log Table
+
+The main log table displays:
+
+| Column | Description |
+|--------|-------------|
+| **Timestamp** | Execution time with millisecond precision |
+| **ID** | Short request ID (first 4 characters) |
+| **Status** | Success (200), failure, or cached |
+| **Function** | Component and function name |
+| **Preview** | First log line or error message |
+
+### Status Indicators
+
+<CardGroup cols={3}>
+  <Card title="Success" icon="check-circle">
+    Green • 200 • Execution time shown
+  </Card>
+  <Card title="Cached" icon="database">
+    Green • Cached result • No execution
+  </Card>
+  <Card title="Failure" icon="x-circle">
+    Red • Error icon • Error message preview
+  </Card>
+</CardGroup>
+
+## Workflow Examples
+
+### Debugging an Error
+
+<Steps>
+  <Step title="Filter to failed logs">
+    Enable only "Failure" in the log type filter
+  </Step>
+  <Step title="Search for error text">
+    Use the search box to find specific error messages
+  </Step>
+  <Step title="Open log details">
+    Click the error entry to view full details
+  </Step>
+  <Step title="Review AI analysis">
+    Switch to the AI Analysis tab for suggestions
+  </Step>
+  <Step title="Check function code">
+    Use "View in Functions" to see the source code
+  </Step>
+</Steps>
+
+### Monitoring Performance
+
+<Steps>
+  <Step title="Select your function">
+    Filter logs to a specific function
+  </Step>
+  <Step title="Observe execution times">
+    Watch the execution time column for patterns
+  </Step>
+  <Step title="Check resource usage">
+    Open log details and view the Resources tab
+  </Step>
+  <Step title="Identify slow queries">
+    Look for high database read counts
+  </Step>
+</Steps>
+
+### Tracing User Actions
+
+<Steps>
+  <Step title="Find the request ID">
+    Search for a specific request ID or user action
+  </Step>
+  <Step title="View function call tree">
+    See which functions called other functions
+  </Step>
+  <Step title="Follow the execution flow">
+    Navigate through related log entries
+  </Step>
+</Steps>
+
+## Advanced Features
+
+### Automatic Pause Control
+
+The log viewer intelligently pauses streaming:
+
+- **Scroll away**: Pauses when you scroll up to read logs
+- **Detail panel open**: Pauses while inspecting an entry
+- **Manual pause**: Use the Pause button for full control
+- **Go Live button**: Resume streaming and scroll to latest
+
+### Export Logs
+
+Download logs for external analysis:
+
+- Copy individual log entries
+- Export filtered logs as JSON
+- Save AI analysis results
+- Share error reports with team
+
+### Function Call Trees
+
+Visualize nested function calls:
+
+```typescript
+HTTP Request
+└─> api/messages:send (mutation)
+    ├─> api/users:get (query) [cached]
+    ├─> api/notifications:create (mutation)
+    └─> api/analytics:track (action)
+```
+
+## Keyboard Shortcuts
+
+<CardGroup cols={2}>
+  <Card title="Clear Logs" icon="trash">
+    Clear current log buffer
+  </Card>
+  <Card title="Pause/Resume" icon="play">
+    Toggle streaming with one click
+  </Card>
+  <Card title="Copy ID" icon="copy">
+    Click request ID to copy
+  </Card>
+  <Card title="Search" icon="search">
+    Cmd/Ctrl+F to focus search
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use structured logging">
+    ```typescript
+    // Good: Structured data
+    console.log("User action", { userId, action, timestamp });
+    
+    // Avoid: Unstructured strings
+    console.log(`User ${userId} did ${action}`);
+    ```
+  </Accordion>
+  
+  <Accordion title="Log at appropriate levels">
+    - Use `console.debug()` for detailed debugging
+    - Use `console.log()` for normal flow
+    - Use `console.warn()` for potential issues
+    - Use `console.error()` for failures
+  </Accordion>
+  
+  <Accordion title="Include context">
+    Always log relevant context like user IDs, request IDs, and timestamps
+  </Accordion>
+  
+  <Accordion title="Don't log sensitive data">
+    Avoid logging passwords, tokens, API keys, or PII
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Logs not appearing">
+    - Check your deployment connection
+    - Verify functions are being called
+    - Ensure log streaming is not paused
+    - Try refreshing the page
+  </Accordion>
+  
+  <Accordion title="Logs streaming slowly">
+    - Reduce active filters to improve performance
+    - Clear old logs to free memory
+    - Check network connection
+    - Pause and resume streaming
+  </Accordion>
+  
+  <Accordion title="Can't find specific logs">
+    - Check date/time filters
+    - Try searching by request ID
+    - Verify function filter is correct
+    - Look in historical logs storage
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Functions" icon="code" href="/features/function-runner">
+    View function code and run tests
+  </Card>
+  <Card title="Health Metrics" icon="activity" href="/features/health-metrics">
+    Monitor overall system health
+  </Card>
+  <Card title="Performance Advisor" icon="gauge" href="/features/performance-advisor">
+    Get optimization recommendations
+  </Card>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Inspect database changes
+  </Card>
+</CardGroup>

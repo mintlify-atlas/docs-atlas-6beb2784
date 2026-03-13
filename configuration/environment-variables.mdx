@@ -1,0 +1,362 @@
+---
+title: Environment Variables
+description: Complete reference for Convex Panel environment variables across different frameworks
+---
+
+Convex Panel requires different environment variables depending on your framework and authentication method.
+
+## Quick Reference
+
+<CardGroup cols={2}>
+  <Card title="Vite / React" icon="react">
+    Use `VITE_` prefix for public variables
+  </Card>
+  <Card title="Next.js" icon="N">
+    Use `NEXT_PUBLIC_` prefix for client-side variables
+  </Card>
+  <Card title="Create React App" icon="react">
+    Use `REACT_APP_` prefix for public variables
+  </Card>
+  <Card title="Convex Backend" icon="server">
+    Use unprefixed variables in Convex Dashboard
+  </Card>
+</CardGroup>
+
+## Frontend Environment Variables
+
+These variables go in your project's `.env` or `.env.local` file.
+
+### Core Configuration
+
+<ParamField path="VITE_CONVEX_URL" type="string" required>
+  Your Convex deployment URL
+  
+  **Example**: `https://happy-animal-123.convex.cloud`
+  
+  <Accordion title="Framework Variants">
+    - **Vite/React**: `VITE_CONVEX_URL`
+    - **Next.js**: `NEXT_PUBLIC_CONVEX_URL`
+    - **Create React App**: `REACT_APP_CONVEX_URL`
+  </Accordion>
+</ParamField>
+
+### OAuth Configuration
+
+<ParamField path="VITE_OAUTH_CLIENT_ID" type="string">
+  OAuth client ID from Convex Dashboard
+  
+  Required for OAuth authentication. Get this from **Convex Dashboard → Team Settings → OAuth Applications**
+  
+  <Accordion title="Framework Variants">
+    - **Vite/React**: `VITE_OAUTH_CLIENT_ID`
+    - **Next.js**: `NEXT_PUBLIC_OAUTH_CLIENT_ID`
+    - **Create React App**: `REACT_APP_OAUTH_CLIENT_ID`
+  </Accordion>
+</ParamField>
+
+<ParamField path="VITE_CONVEX_TOKEN_EXCHANGE_URL" type="string">
+  URL of your token exchange endpoint
+  
+  Required for OAuth authentication. Format: `https://your-deployment.convex.site/oauth/exchange`
+  
+  <Accordion title="Framework Variants">
+    - **Vite/React**: `VITE_CONVEX_TOKEN_EXCHANGE_URL`
+    - **Next.js**: `NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL`
+    - **Create React App**: `REACT_APP_CONVEX_TOKEN_EXCHANGE_URL`
+  </Accordion>
+</ParamField>
+
+### Direct Authentication
+
+<ParamField path="CONVEX_ACCESS_TOKEN" type="string">
+  Access token for direct authentication (alternative to OAuth)
+  
+  Get this from **Convex Dashboard → Team Settings → Access Tokens**
+  
+  <Warning>
+    This variable is **not** prefixed because it should never be exposed to the client. See framework-specific configuration below.
+  </Warning>
+</ParamField>
+
+<ParamField path="CONVEX_CLIENT_SECRET" type="string">
+  OAuth client secret (local development only)
+  
+  <Warning>
+    **Only use this locally**. Never commit this to version control or deploy to production. In production, set this in Convex Dashboard environment variables only.
+  </Warning>
+</ParamField>
+
+## Backend Environment Variables
+
+These variables must be set in **Convex Dashboard → Settings → Environment Variables**.
+
+<Warning>
+  **Critical**: These should NEVER be in your frontend `.env` file. They must only exist in your Convex deployment.
+</Warning>
+
+### OAuth Credentials
+
+<ParamField path="CONVEX_CLIENT_ID" type="string" required>
+  OAuth client ID (same value as frontend `VITE_OAUTH_CLIENT_ID`)
+  
+  Used by the token exchange endpoint to authenticate with Convex OAuth API.
+</ParamField>
+
+<ParamField path="CONVEX_CLIENT_SECRET" type="string" required>
+  OAuth client secret from Convex Dashboard
+  
+  **Critical**: Keep this secret secure. Never expose in frontend code.
+</ParamField>
+
+<ParamField path="OAUTH_REDIRECT_URI" type="string">
+  Your application's origin for OAuth redirects
+  
+  **Example**: `http://localhost:5173` or `https://yourapp.com`
+  
+  Optional - can also be provided in the token exchange request body.
+</ParamField>
+
+## Framework-Specific Setup
+
+### Vite / React
+
+<Steps>
+  <Step title="Create .env file">
+    Create `.env` in your project root:
+    ```bash .env
+    VITE_CONVEX_URL=https://happy-animal-123.convex.cloud
+    VITE_OAUTH_CLIENT_ID=your-oauth-client-id
+    VITE_CONVEX_TOKEN_EXCHANGE_URL=https://happy-animal-123.convex.site/oauth/exchange
+    CONVEX_ACCESS_TOKEN=your-access-token-here
+    ```
+  </Step>
+  
+  <Step title="Access in code">
+    Vite automatically exposes `VITE_` prefixed variables:
+    ```tsx
+    import ConvexPanel from "convex-panel/react";
+    
+    <ConvexPanel
+      oauthConfig={{
+        clientId: import.meta.env.VITE_OAUTH_CLIENT_ID,
+        redirectUri: window.location.origin,
+        tokenExchangeUrl: import.meta.env.VITE_CONVEX_TOKEN_EXCHANGE_URL,
+      }}
+    />
+    ```
+  </Step>
+</Steps>
+
+### Next.js
+
+<Steps>
+  <Step title="Create .env.local file">
+    ```bash .env.local
+    NEXT_PUBLIC_CONVEX_URL=https://happy-animal-123.convex.cloud
+    NEXT_PUBLIC_OAUTH_CLIENT_ID=your-oauth-client-id
+    NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL=https://happy-animal-123.convex.site/oauth/exchange
+    CONVEX_ACCESS_TOKEN=your-access-token-here
+    ```
+  </Step>
+  
+  <Step title="Expose server variables">
+    Add to `next.config.js` to make `CONVEX_ACCESS_TOKEN` available:
+    ```javascript next.config.js
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      env: {
+        CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+      },
+    };
+    
+    module.exports = nextConfig;
+    ```
+  </Step>
+  
+  <Step title="Use in client component">
+    ```tsx app/providers.tsx
+    "use client";
+    
+    import ConvexPanel from "convex-panel/nextjs";
+    
+    export function Providers({ children }) {
+      return (
+        <ConvexProvider client={convex}>
+          {children}
+          <ConvexPanel />
+        </ConvexProvider>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+### Tanstack Start / React Router
+
+These frameworks don't auto-inject environment variables, so you need to use Vite's `define` option:
+
+<Steps>
+  <Step title="Create .env file">
+    ```bash .env
+    VITE_CONVEX_URL=https://happy-animal-123.convex.cloud
+    CONVEX_ACCESS_TOKEN=your-access-token-here
+    ```
+  </Step>
+  
+  <Step title="Configure vite.config.ts">
+    ```typescript vite.config.ts
+    import { defineConfig, loadEnv } from "vite";
+    
+    export default defineConfig(({ mode }) => {
+      const env = loadEnv(mode, process.cwd(), "");
+      
+      return {
+        plugins: [/* your plugins */],
+        define: {
+          __CONVEX_ACCESS_TOKEN__: JSON.stringify(env.CONVEX_ACCESS_TOKEN),
+        },
+      };
+    });
+    ```
+  </Step>
+  
+  <Step title="Declare global type">
+    ```typescript app/root.tsx
+    declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+    
+    export default function App() {
+      return (
+        <ConvexProvider client={convex}>
+          <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+        </ConvexProvider>
+      );
+    }
+    ```
+  </Step>
+</Steps>
+
+## Environment Detection
+
+Convex Panel automatically detects environment variables using the following priority:
+
+### Deployment URL Detection
+
+1. Explicit `deployUrl` prop
+2. Framework-specific env var (`VITE_CONVEX_URL`, `NEXT_PUBLIC_CONVEX_URL`, etc.)
+3. Convex client instance URL
+4. Auto-detection from ConvexProvider context
+
+Implementation from `src/utils/env.ts`:
+```typescript
+export function getConvexUrl(): string | undefined {
+  if (typeof window === 'undefined') return undefined;
+  
+  return (
+    (window as any).VITE_CONVEX_URL ??
+    (window as any).NEXT_PUBLIC_CONVEX_URL ??
+    (window as any).REACT_APP_CONVEX_URL ??
+    import.meta?.env?.VITE_CONVEX_URL ??
+    process.env?.NEXT_PUBLIC_CONVEX_URL ??
+    process.env?.REACT_APP_CONVEX_URL ??
+    undefined
+  );
+}
+```
+
+### OAuth Config Detection
+
+From `src/utils/env.ts`:
+```typescript
+export function getOAuthConfigFromEnv() {
+  const clientId =
+    (window as any).VITE_OAUTH_CLIENT_ID ??
+    (window as any).NEXT_PUBLIC_OAUTH_CLIENT_ID ??
+    import.meta?.env?.VITE_OAUTH_CLIENT_ID ??
+    process.env?.NEXT_PUBLIC_OAUTH_CLIENT_ID;
+
+  const tokenExchangeUrl =
+    (window as any).VITE_CONVEX_TOKEN_EXCHANGE_URL ??
+    (window as any).NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL ??
+    import.meta?.env?.VITE_CONVEX_TOKEN_EXCHANGE_URL ??
+    process.env?.NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL;
+
+  if (!clientId || !tokenExchangeUrl) return null;
+
+  return {
+    clientId,
+    tokenExchangeUrl,
+    redirectUri: window.location.origin,
+    scope: 'project' as const,
+  };
+}
+```
+
+## Setup Script
+
+The `npx convex-panel setup` command provides an interactive way to configure environment variables:
+
+```bash
+npx convex-panel setup
+```
+
+This script will:
+- Auto-detect your framework (Vite, Next.js, Create React App)
+- Prompt for missing environment variables
+- Update or create `.env` / `.env.local` file
+- Suggest token exchange URL based on your deployment URL
+- Optionally trigger device authentication flow for access tokens
+
+<Note>
+  The setup script from `scripts/setup-env.js:407-628` intelligently detects your framework by checking existing environment variables and prompting if needed.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Variables not accessible in browser">
+    **Vite**: Must use `VITE_` prefix for client-accessible variables
+    
+    **Next.js**: Must use `NEXT_PUBLIC_` prefix for client-accessible variables
+    
+    **Server-only variables** (like `CONVEX_ACCESS_TOKEN`): Must be explicitly exposed via framework config
+  </Accordion>
+  
+  <Accordion title="OAuth client secret exposed in frontend">
+    **Never** put `CONVEX_CLIENT_SECRET` in your frontend `.env` with a public prefix like `VITE_` or `NEXT_PUBLIC_`.
+    
+    This value should only exist in:
+    1. Convex Dashboard environment variables (production)
+    2. Local `.env` without public prefix (development, for testing the token exchange endpoint)
+  </Accordion>
+  
+  <Accordion title="Environment variables not updating">
+    1. Restart your dev server after changing `.env` files
+    2. Clear browser cache and hard reload
+    3. Check for typos in variable names
+    4. Verify the variable has the correct prefix for your framework
+  </Accordion>
+  
+  <Accordion title="CONVEX_ACCESS_TOKEN not working in Next.js">
+    You must expose it in `next.config.js`:
+    ```javascript
+    module.exports = {
+      env: {
+        CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+      },
+    };
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Security Checklist
+
+<Warning>
+  **Before deploying to production**:
+  
+  - ✅ `CONVEX_CLIENT_SECRET` is only in Convex Dashboard, not in frontend code
+  - ✅ `.env.local` is in `.gitignore`
+  - ✅ No secrets committed to version control
+  - ✅ Production environment variables are set in your hosting platform
+  - ✅ Token exchange URL uses HTTPS in production
+  - ✅ OAuth redirect URIs are explicitly whitelisted in OAuth application settings
+</Warning>

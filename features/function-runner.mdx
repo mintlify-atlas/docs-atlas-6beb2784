@@ -1,0 +1,517 @@
+---
+title: Function Runner
+description: Execute, debug, and analyze your Convex functions with powerful testing tools
+icon: play
+---
+
+The Function Runner provides an interactive environment for testing, debugging, and analyzing your Convex queries, mutations, and actions.
+
+## Overview
+
+Test your Convex functions without writing frontend code. The Function Runner combines a code editor, execution environment, and performance analyzer in one interface.
+
+<Frame>
+  <img src="https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2Fcleansnap-16x9.png?alt=media&token=600d9bf6-18bc-46b2-9635-20290ec8afd4" alt="Function Runner Interface" />
+</Frame>
+
+## Key Features
+
+### Function Browser
+
+Navigate your function library:
+
+<Tabs>
+  <Tab title="By File">
+    **File-Based Navigation**
+    
+    Functions organized by source file:
+    - Expandable folder structure
+    - File path breadcrumbs
+    - Search by file name
+    - Recently used functions
+    
+    ```
+    📁 convex/
+    ├── 📄 messages.ts
+    │   ├── fn send (mutation)
+    │   ├── fn list (query)
+    │   └── fn delete (mutation)
+    └── 📄 users.ts
+        ├── fn get (query)
+        └── fn update (mutation)
+    ```
+  </Tab>
+  
+  <Tab title="By Type">
+    **Function Type Badges**
+    
+    Visual indicators for function types:
+    
+    <CardGroup cols={3}>
+      <Card title="Query" icon="Q">
+        🟡 Read-only database queries
+      </Card>
+      <Card title="Mutation" icon="M">
+        🔵 Database write operations
+      </Card>
+      <Card title="Action" icon="A">
+        🟢 External API calls & side effects
+      </Card>
+    </CardGroup>
+  </Tab>
+  
+  <Tab title="By Component">
+    **Component Selector**
+    
+    Filter functions by Convex component:
+    - Main app functions
+    - Component-specific functions
+    - Switch between components
+    - See function counts per component
+  </Tab>
+</Tabs>
+
+### Function Execution
+
+Run functions with custom arguments:
+
+<Steps>
+  <Step title="Select function">
+    Click any function in the sidebar to load it
+  </Step>
+  <Step title="Enter arguments">
+    Provide input in JSON format:
+    ```json
+    {
+      "userId": "user123",
+      "message": "Hello world",
+      "metadata": { "priority": "high" }
+    }
+    ```
+  </Step>
+  <Step title="Execute">
+    Click "Run Function" or press Cmd/Ctrl+Enter
+  </Step>
+  <Step title="View results">
+    See return value, logs, and performance metrics
+  </Step>
+</Steps>
+
+<Tip>
+  Arguments are saved per function so you can quickly re-run tests.
+</Tip>
+
+### Interactive Code Editor
+
+Full-featured Monaco editor with:
+
+- **Syntax highlighting**: TypeScript/JavaScript support
+- **Auto-completion**: IntelliSense for Convex APIs
+- **Error detection**: Real-time linting
+- **Formatting**: Prettier integration
+- **Dark/light themes**: Matches your panel theme
+
+### Results Panel
+
+View detailed execution results:
+
+<Tabs>
+  <Tab title="Return Value">
+    **Function Output**
+    
+    See the returned data with formatting:
+    - Syntax-highlighted JSON
+    - Collapsible nested objects
+    - Copy to clipboard
+    - Type indicators
+    
+    ```json
+    {
+      "_id": "msg_abc123",
+      "_creationTime": 1234567890,
+      "text": "Hello world",
+      "author": {
+        "_id": "user_xyz",
+        "name": "Alice"
+      }
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Console Logs">
+    **Debug Output**
+    
+    View console.log statements from your function:
+    - All log levels (debug, info, warn, error)
+    - Timestamps for each log
+    - Formatted objects and arrays
+    - Click to expand complex values
+    
+    <Note>
+      Logs appear in real-time as the function executes.
+    </Note>
+  </Tab>
+  
+  <Tab title="Errors">
+    **Exception Details**
+    
+    When functions fail, see:
+    - Full error message
+    - Stack trace with line numbers
+    - Click to jump to error in code
+    - AI-suggested fixes
+    
+    ```typescript
+    Error: User not found
+        at Object.handler (users.ts:42:11)
+        at processTicksAndRejections (internal/process/task_queues.js:95:5)
+    ```
+  </Tab>
+  
+  <Tab title="Performance">
+    **Execution Metrics**
+    
+    Analyze function performance:
+    - **Duration**: Total execution time
+    - **Database ops**: Read/write counts
+    - **Memory**: MB consumed
+    - **Cache**: Whether result was cached
+    - **Compute**: GB-hours calculation
+  </Tab>
+</Tabs>
+
+## Performance Analytics
+
+### Statistics Tab
+
+View real-time function metrics:
+
+<CardGroup cols={2}>
+  <Card title="Function Calls" icon="chart-line">
+    Invocation frequency over last 30 minutes
+    - Sparkline chart
+    - Call count
+    - Trend indicator
+  </Card>
+  <Card title="Errors" icon="triangle-exclamation">
+    Error rate and count
+    - Error frequency chart
+    - Failure percentage
+    - Recent error messages
+  </Card>
+  <Card title="Execution Time" icon="clock">
+    Performance trends
+    - p50 (median) latency chart
+    - Average execution time
+    - Slowest executions
+  </Card>
+  <Card title="Cache Hit Rate" icon="database">
+    Query caching effectiveness (queries only)
+    - Cache hit percentage
+    - Cached vs fresh executions
+    - Optimization opportunities
+  </Card>
+</CardGroup>
+
+<Tip>
+  Charts update every 30 seconds with the latest data.
+</Tip>
+
+### Code Tab
+
+View function source code:
+
+<AccordionGroup>
+  <Accordion title="Source Viewer">
+    - **Read-only editor**: See full file contents
+    - **Syntax highlighting**: Language-specific colors
+    - **Line numbers**: Easy reference
+    - **Auto-scroll**: Jumps to function definition
+    - **Search**: Cmd/Ctrl+F to find text
+  </Accordion>
+  
+  <Accordion title="Function Highlighting">
+    When navigating from logs or errors:
+    - Automatically scrolls to function
+    - Highlights function definition for 3 seconds
+    - Makes it easy to find the right code
+  </Accordion>
+  
+  <Accordion title="File Context">
+    See the function in context:
+    - View imports and dependencies
+    - See helper functions in same file
+    - Understand the full module
+  </Accordion>
+</AccordionGroup>
+
+### Logs Tab
+
+Stream real-time function execution logs:
+
+- **Live streaming**: See executions as they happen
+- **Request ID**: Unique identifier for each execution
+- **Timestamp**: When the function ran
+- **Status**: Success, failure, or cached
+- **Duration**: Execution time
+- **Click to expand**: View full details for any execution
+
+<Note>
+  The Logs tab shows only logs for the selected function, filtered from the global log stream.
+</Note>
+
+## Run History
+
+Access your recent function executions:
+
+```
+┌─ Recent Runs ────────────────────────────────────────┐
+│                                                       │
+│  ✓ 2 minutes ago  •  45ms  •  Returned: {...}       │
+│  ✓ 5 minutes ago  •  38ms  •  Returned: {...}       │
+│  ✗ 10 minutes ago •  12ms  •  Error: User not found │
+│  ✓ 15 minutes ago •  52ms  •  Cached                │
+│                                                       │
+└───────────────────────────────────────────────────────┘
+```
+
+For each run:
+- Timestamp
+- Success/failure indicator
+- Execution time
+- Quick result preview
+- Click to re-run with same arguments
+
+## Advanced Features
+
+### Custom Query Builder
+
+Build database queries visually:
+
+```typescript
+// Generated query code
+const results = await db.query("messages")
+  .withIndex("by_user", q => q.eq("userId", args.userId))
+  .order("desc")
+  .filter(q => q.gte(q.field("_creationTime"), startTime))
+  .take(20);
+```
+
+<Steps>
+  <Step title="Select table">
+    Choose which table to query
+  </Step>
+  <Step title="Add filters">
+    Build filter conditions
+  </Step>
+  <Step title="Configure sorting">
+    Set order and direction
+  </Step>
+  <Step title="Execute">
+    Run the generated query
+  </Step>
+</Steps>
+
+### Function Comparison
+
+Compare performance across function versions:
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Avg time | 45ms | 38ms | -15% ↓ |
+| Errors | 2.1% | 0.8% | -62% ↓ |
+| Cache hits | 45% | 67% | +49% ↑ |
+
+### Batch Testing
+
+Test functions with multiple input sets:
+
+```json
+// Test case 1
+{ "userId": "user1", "limit": 10 }
+
+// Test case 2
+{ "userId": "user2", "limit": 20 }
+
+// Test case 3
+{ "userId": "invalid" }  // Should error
+```
+
+Run all tests and see aggregated results.
+
+## Debugging Workflows
+
+### Testing a New Function
+
+<Steps>
+  <Step title="Navigate to function">
+    Find your new function in the sidebar
+  </Step>
+  <Step title="Prepare test data">
+    Enter realistic arguments
+  </Step>
+  <Step title="Run and inspect">
+    Execute and check return value
+  </Step>
+  <Step title="Test edge cases">
+    Try invalid inputs, empty data, etc.
+  </Step>
+  <Step title="Monitor performance">
+    Check execution time and resource usage
+  </Step>
+</Steps>
+
+### Debugging an Error
+
+<Steps>
+  <Step title="Reproduce the error">
+    Use arguments from production logs
+  </Step>
+  <Step title="Examine stack trace">
+    Identify the failing line of code
+  </Step>
+  <Step title="View source code">
+    Switch to Code tab to see context
+  </Step>
+  <Step title="Add debug logs">
+    Deploy with additional console.log
+  </Step>
+  <Step title="Re-test">
+    Run function again and check logs
+  </Step>
+</Steps>
+
+### Performance Optimization
+
+<Steps>
+  <Step title="Establish baseline">
+    Run function and note execution time
+  </Step>
+  <Step title="Check database ops">
+    See how many reads/writes occur
+  </Step>
+  <Step title="Optimize code">
+    Add indexes, reduce queries, etc.
+  </Step>
+  <Step title="Deploy changes">
+    Push optimized code
+  </Step>
+  <Step title="Compare results">
+    Re-run and measure improvement
+  </Step>
+</Steps>
+
+## Keyboard Shortcuts
+
+<CardGroup cols={2}>
+  <Card title="Run Function" icon="play">
+    Cmd/Ctrl + Enter
+  </Card>
+  <Card title="Focus Search" icon="search">
+    Cmd/Ctrl + K
+  </Card>
+  <Card title="Toggle Code" icon="code">
+    Cmd/Ctrl + \\
+  </Card>
+  <Card title="Clear Results" icon="trash">
+    Cmd/Ctrl + L
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Save test cases">
+    Keep a file of common test arguments for quick testing:
+    ```json
+    // test-data.json
+    {
+      "sendMessage": {
+        "userId": "test_user",
+        "text": "Test message"
+      },
+      "getUser": {
+        "userId": "test_user"
+      }
+    }
+    ```
+  </Accordion>
+  
+  <Accordion title="Test before deploying">
+    Always test functions in the runner before pushing to production
+  </Accordion>
+  
+  <Accordion title="Use realistic data">
+    Test with production-like data sizes and structures
+  </Accordion>
+  
+  <Accordion title="Monitor performance trends">
+    Check the Statistics tab regularly to catch regressions early
+  </Accordion>
+  
+  <Accordion title="Test edge cases">
+    Try null values, empty arrays, invalid types, etc.
+  </Accordion>
+</AccordionGroup>
+
+## Integration with Other Features
+
+### From Data Browser
+
+<Card title="Custom Queries" icon="database">
+  Click "Custom Query" in the Data Browser to open Function Runner with a pre-configured query for the current table.
+</Card>
+
+### From Logs
+
+<Card title="Replay Execution" icon="rotate-right">
+  Click "View in Functions" from any log entry to load the function with the original arguments.
+</Card>
+
+### From Health Metrics
+
+<Card title="Investigate Performance" icon="chart-line">
+  Click any function name in Health Metrics charts to jump to the Function Runner for detailed analysis.
+</Card>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Function won't execute">
+    - Check argument syntax is valid JSON
+    - Verify you have correct permissions
+    - Ensure deployment is connected
+    - Check function is deployed
+  </Accordion>
+  
+  <Accordion title="Can't see source code">
+    - Verify you're connected to the right deployment
+    - Check the function exists in current deployment
+    - Try refreshing the page
+    - Ensure deployment has source maps
+  </Accordion>
+  
+  <Accordion title="Performance metrics missing">
+    - Metrics require at least one function execution
+    - Wait 30 seconds for chart updates
+    - Check deployment connection
+    - Verify function has been called recently
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Logs" icon="scroll-text" href="/features/logs">
+    View detailed execution logs
+  </Card>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Inspect function results in database
+  </Card>
+  <Card title="Performance Advisor" icon="gauge" href="/features/performance-advisor">
+    Get optimization recommendations
+  </Card>
+  <Card title="Health Metrics" icon="activity" href="/features/health-metrics">
+    Monitor overall function health
+  </Card>
+</CardGroup>

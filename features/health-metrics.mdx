@@ -1,0 +1,416 @@
+---
+title: Health Metrics
+description: Monitor your application's health and performance at a glance
+icon: activity
+---
+
+The Health Metrics view provides real-time monitoring of your Convex deployment's performance, errors, and resource usage.
+
+## Overview
+
+Health Metrics gives you a comprehensive dashboard of your application's vital signs. Monitor function performance, track errors, analyze cache efficiency, and identify issues before they impact users.
+
+<Tip>
+  All metrics are displayed for the last hour by default and update automatically every 30 seconds.
+</Tip>
+
+## Key Metrics
+
+### System Overview
+
+<CardGroup cols={2}>
+  <Card title="Failure Rate" icon="exclamation-triangle">
+    Percentage of failed function executions
+    - Real-time calculation
+    - Trend indicators
+    - Alert threshold visualization
+  </Card>
+  <Card title="Cache Hit Rate" icon="database">
+    Query cache effectiveness
+    - Percentage of cached vs fresh executions
+    - Query optimization insights
+    - Historical trends
+  </Card>
+  <Card title="Scheduler Status" icon="clock">
+    Scheduled job health
+    - Active cron jobs
+    - Next execution times
+    - Failure notifications
+  </Card>
+  <Card title="Deployment Info" icon="rocket">
+    Latest deployment status
+    - Last deployed time
+    - Deployment version
+    - Environment indicator
+  </Card>
+</CardGroup>
+
+## Performance Charts
+
+### Slowest Functions
+
+Identify performance bottlenecks:
+
+<Tabs>
+  <Tab title="p50 Latency">
+    **Median Execution Time**
+    
+    View the median (50th percentile) execution time for each function:
+    - Bar chart visualization
+    - Sorted by slowest first
+    - Compare across functions
+    - Click to view function details
+    
+    <Note>
+      p50 represents typical performance - half of executions are faster, half are slower.
+    </Note>
+  </Tab>
+  
+  <Tab title="p95 Latency">
+    **95th Percentile**
+    
+    See worst-case performance:
+    - 95% of executions faster than this
+    - Catch outliers and slow queries
+    - Identify optimization opportunities
+  </Tab>
+  
+  <Tab title="p99 Latency">
+    **99th Percentile**
+    
+    Monitor edge cases:
+    - Nearly all executions faster
+    - Spot rare performance issues
+    - Track timeout risks
+  </Tab>
+</Tabs>
+
+### Function Activity
+
+Monitor function execution patterns:
+
+```
+┌─ Function Invocation Timeline (Last Hour) ─────────────┐
+│                                                         │
+│  api/messages:send  ▁▃▅█▇▅▃▁                          │
+│  api/users:get      ▃▃▄▄▅▄▃▃                          │
+│  api/auth:login     ▁▁▂▃▃▂▁▁                          │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+     30m ago        15m ago        now
+```
+
+Visualize:
+- Call frequency over time
+- Peak usage periods
+- Function popularity
+- Traffic patterns
+
+### Top Functions
+
+See your most-called functions:
+
+| Rank | Function | Invocations | Avg Time |
+|------|----------|-------------|----------|
+| 1 | api/messages:list | 1,234 | 45ms |
+| 2 | api/users:get | 987 | 12ms |
+| 3 | api/auth:validate | 756 | 8ms |
+
+<Tip>
+  Click any function name to jump to the Function Runner for detailed analysis.
+</Tip>
+
+## Error Tracking
+
+### Top Errors
+
+Monitor the most frequent errors:
+
+<AccordionGroup>
+  <Accordion title="Error Overview">
+    - **Error message**: The exception or error text
+    - **Occurrences**: How many times seen
+    - **First seen**: When error first appeared
+    - **Last seen**: Most recent occurrence
+    - **Affected functions**: Which functions throw this error
+  </Accordion>
+  
+  <Accordion title="Error Grouping">
+    Errors are automatically grouped by:
+    - Error message similarity
+    - Stack trace patterns
+    - Function name
+    - Error type (TypeError, ReferenceError, etc.)
+  </Accordion>
+  
+  <Accordion title="Error Details">
+    Click an error to view:
+    - Full stack trace
+    - Recent occurrences timeline
+    - Affected request IDs
+    - Link to logs for debugging
+    - AI-generated fix suggestions
+  </Accordion>
+</AccordionGroup>
+
+### Recent Errors Summary
+
+Quick view of latest errors:
+
+<CardGroup cols={3}>
+  <Card title="Last 5 Minutes" icon="1">
+    Immediate error count
+  </Card>
+  <Card title="Last Hour" icon="clock">
+    Hourly error trend
+  </Card>
+  <Card title="Error Rate" icon="percentage">
+    Errors per total executions
+  </Card>
+</CardGroup>
+
+## AI-Powered Insights
+
+### Error Analysis
+
+Automatic error diagnosis:
+
+<Steps>
+  <Step title="Error Detection">
+    AI identifies recurring errors and patterns
+  </Step>
+  <Step title="Root Cause Analysis">
+    Analyzes stack traces and code context
+  </Step>
+  <Step title="Fix Suggestions">
+    Provides actionable solutions with code examples
+  </Step>
+  <Step title="Impact Assessment">
+    Estimates severity and user impact
+  </Step>
+</Steps>
+
+### Log Summaries
+
+Get intelligent summaries of log patterns:
+
+- **Common operations**: Most frequent function calls
+- **Unusual activity**: Deviations from normal patterns
+- **Performance anomalies**: Unexpected slowdowns
+- **Error trends**: Increasing or decreasing error rates
+
+<Note>
+  AI features require configuration in Settings. [Learn more](/features/health-metrics)
+</Note>
+
+### Deployment Correlation
+
+Track how deployments affect health:
+
+```
+┌─ Deployment Impact Analysis ──────────────────────────┐
+│                                                        │
+│  Before Deploy:  ✓ 99.8% success  ⚡ 45ms p50         │
+│                 │                                      │
+│                 ▼ Deploy at 10:30 AM                  │
+│                 │                                      │
+│  After Deploy:   ✓ 99.9% success  ⚡ 38ms p50         │
+│                                                        │
+│  Impact: +0.1% success, -15% latency  ✅ Improved    │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+## Advanced Metrics
+
+### Latency Percentiles
+
+Understand your latency distribution:
+
+<CardGroup cols={3}>
+  <Card title="p50 (Median)" icon="gauge">
+    Typical user experience
+  </Card>
+  <Card title="p95" icon="gauge-high">
+    Slower edge cases
+  </Card>
+  <Card title="p99" icon="triangle-exclamation">
+    Worst-case scenarios
+  </Card>
+</CardGroup>
+
+### Database Operations
+
+Monitor database activity:
+
+- **Read operations**: Document reads per minute
+- **Write operations**: Document writes per minute
+- **Read bytes**: Data transfer from database
+- **Write bytes**: Data transfer to database
+
+### Storage Metrics
+
+Track file storage usage:
+
+- **Files stored**: Total file count
+- **Storage used**: Bytes consumed
+- **Read operations**: File downloads
+- **Write operations**: File uploads
+
+## Insights Dashboard
+
+AI-generated insights about your deployment:
+
+<Tabs>
+  <Tab title="Problems">
+    **Issues Detected**
+    
+    - High error rates
+    - Slow functions
+    - Memory issues
+    - Timeout risks
+    - Cache inefficiency
+  </Tab>
+  
+  <Tab title="Opportunities">
+    **Optimization Suggestions**
+    
+    - Index recommendations
+    - Caching improvements
+    - Query optimizations
+    - Code refactoring
+  </Tab>
+  
+  <Tab title="Trends">
+    **Pattern Analysis**
+    
+    - Traffic growth
+    - Usage patterns
+    - Performance trends
+    - Error trends
+  </Tab>
+</Tabs>
+
+## Monitoring Workflows
+
+### Daily Health Check
+
+<Steps>
+  <Step title="Check failure rate">
+    Ensure it's below your threshold (typically less than 1%)
+  </Step>
+  <Step title="Review top errors">
+    Prioritize fixing most frequent errors
+  </Step>
+  <Step title="Check slowest functions">
+    Identify optimization opportunities
+  </Step>
+  <Step title="Review insights">
+    Act on AI-generated recommendations
+  </Step>
+</Steps>
+
+### Post-Deployment Validation
+
+<Steps>
+  <Step title="Compare before/after metrics">
+    Check if performance improved or regressed
+  </Step>
+  <Step title="Watch for new errors">
+    Monitor error count for 15-30 minutes
+  </Step>
+  <Step title="Verify cache hit rate">
+    Ensure caching still working after changes
+  </Step>
+  <Step title="Check function latencies">
+    Confirm no unexpected slowdowns
+  </Step>
+</Steps>
+
+### Incident Response
+
+<Steps>
+  <Step title="Identify spike">
+    Check failure rate and error charts
+  </Step>
+  <Step title="Find affected functions">
+    Look at top errors and slowest functions
+  </Step>
+  <Step title="View recent logs">
+    Switch to Logs view for details
+  </Step>
+  <Step title="Check deployment correlation">
+    See if issue started with a deployment
+  </Step>
+</Steps>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Set Baselines" icon="chart-line">
+    Know your normal metrics to spot anomalies quickly
+  </Card>
+  <Card title="Monitor Trends" icon="arrow-trend-up">
+    Watch for gradual degradation over time
+  </Card>
+  <Card title="Act on Insights" icon="lightbulb">
+    Prioritize AI-suggested optimizations
+  </Card>
+  <Card title="Review Regularly" icon="calendar">
+    Check health metrics daily or after deployments
+  </Card>
+</CardGroup>
+
+## Alerts & Notifications
+
+<Note>
+  Alert configuration is available in the mobile app and coming soon to desktop.
+</Note>
+
+Set up notifications for:
+- Failure rate exceeds threshold
+- Specific errors occur
+- Function latency spikes
+- Deployment completes
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Metrics not loading">
+    - Verify deployment connection
+    - Check authentication
+    - Refresh the page
+    - Check browser console for errors
+  </Accordion>
+  
+  <Accordion title="High failure rate">
+    - Check Top Errors for root cause
+    - Review recent deployments
+    - Check Logs for error details
+    - Verify external service availability
+  </Accordion>
+  
+  <Accordion title="Slow performance">
+    - Review Slowest Functions chart
+    - Check database operation counts
+    - Look for missing indexes
+    - Consider query optimization
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Performance Advisor" icon="gauge" href="/features/performance-advisor">
+    Get specific optimization recommendations
+  </Card>
+  <Card title="Logs" icon="scroll-text" href="/features/logs">
+    Debug errors and investigate issues
+  </Card>
+  <Card title="Function Runner" icon="code" href="/features/function-runner">
+    Analyze individual function performance
+  </Card>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Inspect data for issues
+  </Card>
+</CardGroup>

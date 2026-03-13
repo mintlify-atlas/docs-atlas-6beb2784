@@ -1,0 +1,527 @@
+---
+title: File Storage
+description: Manage your Convex file storage with upload, preview, and download capabilities
+icon: file
+---
+
+The File Storage view provides a comprehensive interface for managing files stored in Convex, including images, documents, videos, and other media.
+
+## Overview
+
+Manage all files uploaded to your Convex deployment through the File Storage interface. Upload new files via drag-and-drop, preview images and documents, and efficiently manage your file library.
+
+## Key Features
+
+### File Browser
+
+View and manage all your stored files:
+
+<CardGroup cols={2}>
+  <Card title="List View" icon="list">
+    Table layout showing all file metadata
+  </Card>
+  <Card title="Search" icon="search">
+    Find files by ID, name, or content type
+  </Card>
+  <Card title="Date Filtering" icon="calendar">
+    Filter by upload date ranges
+  </Card>
+  <Card title="Bulk Operations" icon="check-square">
+    Select and manage multiple files at once
+  </Card>
+</CardGroup>
+
+### File Upload
+
+Multiple ways to add files:
+
+<Tabs>
+  <Tab title="Drag & Drop">
+    **Easy File Upload**
+    
+    Simply drag files onto the interface:
+    - Drag files from your desktop
+    - Drop anywhere on the Files view
+    - Upload indicator appears
+    - Progress bar for each file
+    - Auto-refresh after upload
+    
+    <Tip>
+      Drag multiple files at once for batch uploads.
+    </Tip>
+  </Tab>
+  
+  <Tab title="Click to Upload">
+    **Traditional Upload**
+    
+    Click the "Upload Files" button:
+    - Opens file picker dialog
+    - Select one or multiple files
+    - Supports all file types
+    - Size limits shown
+    - Instant upload start
+  </Tab>
+  
+  <Tab title="Progress Tracking">
+    **Upload Monitoring**
+    
+    See real-time upload progress:
+    - Individual file progress bars
+    - Percentage complete (0-100%)
+    - Upload speed indicator
+    - Success/error states
+    - Automatic retry on failure
+    
+    ```
+    Uploading: image.png ████████░░ 80%
+    Uploading: doc.pdf   ██░░░░░░░░ 20%
+    ✓ Complete: video.mp4 (12.3 MB)
+    ```
+  </Tab>
+</Tabs>
+
+### File Information
+
+The file table displays:
+
+| Column | Description |
+|--------|-------------|
+| **Checkbox** | Select file for bulk operations |
+| **ID** | Storage ID or document ID (click to copy) |
+| **Size** | File size in human-readable format |
+| **Content Type** | MIME type (image/png, video/mp4, etc.) |
+| **Uploaded At** | Timestamp with date and time |
+| **Actions** | Download and delete buttons |
+
+### File Preview
+
+Click any file to see a detailed preview:
+
+<Tabs>
+  <Tab title="Images">
+    **Image Preview**
+    
+    For image files (PNG, JPG, GIF, WebP, SVG):
+    - Full-resolution preview
+    - Zoom in/out controls
+    - Image dimensions shown
+    - Color space information
+    - Download original
+    
+    <Frame>
+      <img src="https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2Fcleansnap-16x9.png?alt=media&token=600d9bf6-18bc-46b2-9635-20290ec8afd4" alt="Image preview example" />
+    </Frame>
+  </Tab>
+  
+  <Tab title="Documents">
+    **Document Preview**
+    
+    For text-based files (TXT, JSON, CSV, MD):
+    - Syntax-highlighted view
+    - Line numbers
+    - Copy to clipboard
+    - Search within document
+    - Download option
+  </Tab>
+  
+  <Tab title="Other Files">
+    **Generic Preview**
+    
+    For all other file types:
+    - File metadata display
+    - Storage ID
+    - Size and type
+    - Upload timestamp
+    - Quick download button
+    - Open in external app
+  </Tab>
+</Tabs>
+
+## File Operations
+
+### Download Files
+
+Retrieve files from storage:
+
+<Steps>
+  <Step title="Click download icon">
+    In the file row, click the external link icon
+  </Step>
+  <Step title="File downloads">
+    Browser downloads file with original name
+  </Step>
+  <Step title="Save locally">
+    Choose save location in browser dialog
+  </Step>
+</Steps>
+
+<Note>
+  Downloaded files retain their original name and extension.
+</Note>
+
+### Delete Files
+
+Remove files from storage:
+
+<Tabs>
+  <Tab title="Single Delete">
+    **Delete One File**
+    
+    <Steps>
+      <Step title="Click delete icon">
+        Click trash icon in file row
+      </Step>
+      <Step title="Confirm deletion">
+        Dialog shows file name for confirmation
+      </Step>
+      <Step title="Confirm">
+        Click "Delete" to permanently remove
+      </Step>
+    </Steps>
+    
+    <Warning>
+      Deleted files cannot be recovered. Download important files before deleting.
+    </Warning>
+  </Tab>
+  
+  <Tab title="Bulk Delete">
+    **Delete Multiple Files**
+    
+    <Steps>
+      <Step title="Select files">
+        Check boxes next to files to delete
+      </Step>
+      <Step title="Click bulk delete">
+        "Delete X files" button appears in toolbar
+      </Step>
+      <Step title="Confirm deletion">
+        Dialog shows count of files to delete
+      </Step>
+      <Step title="Confirm">
+        All selected files deleted at once
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+### Select Operations
+
+<CardGroup cols={2}>
+  <Card title="Select All" icon="check-double">
+    Checkbox in header selects all visible files
+  </Card>
+  <Card title="Individual Select" icon="check">
+    Click checkbox for each file to select
+  </Card>
+  <Card title="Clear Selection" icon="xmark">
+    Uncheck header to deselect all
+  </Card>
+  <Card title="Selection Count" icon="hashtag">
+    Selected count shown in toolbar
+  </Card>
+</CardGroup>
+
+## Filtering & Search
+
+### Search Files
+
+Find files quickly:
+
+```
+🔍 Lookup by ID
+  └─> Search by:
+      • Storage ID (kg_abc123...)
+      • File name (if stored)
+      • Content type (image/png)
+```
+
+<Tip>
+  Search is instant and updates results as you type.
+</Tip>
+
+### Date Filters
+
+Filter by upload date:
+
+<AccordionGroup>
+  <Accordion title="Preset Ranges">
+    Quick filters:
+    - **Last 24 hours**: Files from past day
+    - **Last 7 days**: Past week
+    - **Last 30 days**: Past month
+    - **Last 90 days**: Past quarter
+    - **Any time**: All files (default)
+  </Accordion>
+  
+  <Accordion title="Custom Range">
+    Select specific dates:
+    - Start date picker
+    - End date picker
+    - Inclusive date range
+    - Automatically filters
+  </Accordion>
+</AccordionGroup>
+
+### Component Filter
+
+If using Convex components:
+
+- Filter files by component
+- Switch between app and component files
+- See file counts per component
+- Isolated component storage
+
+## File Management Workflows
+
+### Uploading User Assets
+
+<Steps>
+  <Step title="Prepare files">
+    Organize files to upload locally
+  </Step>
+  <Step title="Select component">
+    Choose correct component if applicable
+  </Step>
+  <Step title="Upload files">
+    Drag and drop or click upload button
+  </Step>
+  <Step title="Monitor progress">
+    Watch progress bars for each file
+  </Step>
+  <Step title="Verify upload">
+    Check files appear in the list
+  </Step>
+</Steps>
+
+### Cleaning Up Old Files
+
+<Steps>
+  <Step title="Filter by date">
+    Select "Last 90 days" or custom range
+  </Step>
+  <Step title="Review files">
+    Check which files are no longer needed
+  </Step>
+  <Step title="Select for deletion">
+    Check boxes for files to remove
+  </Step>
+  <Step title="Bulk delete">
+    Use bulk delete to remove all at once
+  </Step>
+  <Step title="Confirm">
+    Double-check count before confirming
+  </Step>
+</Steps>
+
+### Backing Up Files
+
+<Steps>
+  <Step title="Select all files">
+    Check "select all" box in header
+  </Step>
+  <Step title="Download each file">
+    Click download for each file (or use bulk download if available)
+  </Step>
+  <Step title="Save to backup location">
+    Store in external backup system
+  </Step>
+  <Step title="Verify backups">
+    Confirm all files downloaded correctly
+  </Step>
+</Steps>
+
+## Upload Progress States
+
+Files show different states during upload:
+
+<CardGroup cols={3}>
+  <Card title="Uploading" icon="spinner">
+    🔵 Progress bar, percentage shown
+  </Card>
+  <Card title="Success" icon="check">
+    🟢 Checkmark, file ready to use
+  </Card>
+  <Card title="Error" icon="x">
+    🔴 Error message, retry option
+  </Card>
+</CardGroup>
+
+### Error Handling
+
+If upload fails:
+
+- Error message displayed inline
+- Retry button appears
+- File details preserved
+- Can remove from queue
+- Auto-retry on network issues
+
+## File Metadata
+
+Each file stores:
+
+```typescript
+interface FileMetadata {
+  _id: string;              // Document ID
+  _creationTime: number;    // Upload timestamp
+  storageId: string;        // Storage ID for retrieval
+  name?: string;            // Original filename
+  size?: number;            // File size in bytes
+  contentType?: string;     // MIME type
+  url?: string;            // Signed URL for access
+}
+```
+
+## Storage Limits
+
+<Note>
+  Storage limits depend on your Convex plan. Check the [Convex pricing page](https://convex.dev/pricing) for details.
+</Note>
+
+### Monitoring Usage
+
+- Total file count shown in toolbar
+- Individual file sizes displayed
+- Calculate total storage used
+- Plan usage warnings (Pro feature)
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Optimize file sizes">
+    - Compress images before upload
+    - Use appropriate formats (WebP for images, MP4 for video)
+    - Don't store unnecessarily large files
+    - Consider resizing images server-side
+  </Accordion>
+  
+  <Accordion title="Use descriptive names">
+    ```typescript
+    // Good
+    await storage.store(file, "user-avatar-123.jpg");
+    
+    // Avoid
+    await storage.store(file, "image.jpg");
+    ```
+  </Accordion>
+  
+  <Accordion title="Implement cleanup">
+    Set up scheduled jobs to delete old files:
+    ```typescript
+    export const cleanupOldFiles = internalMutation({
+      handler: async (ctx) => {
+        const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+        const oldFiles = await ctx.db.query("_storage")
+          .filter(q => q.lt(q.field("_creationTime"), thirtyDaysAgo))
+          .collect();
+        // Delete old files
+      }
+    });
+    ```
+  </Accordion>
+  
+  <Accordion title="Track file ownership">
+    Store references to files in your data model:
+    ```typescript
+    export default defineSchema({
+      users: defineTable({
+        name: v.string(),
+        avatarStorageId: v.optional(v.id("_storage")),
+      }),
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Integration with Code
+
+### Upload from Functions
+
+```typescript
+import { mutation } from "./_generated/server";
+
+export const uploadFile = mutation({
+  handler: async (ctx, { file }: { file: File }) => {
+    const storageId = await ctx.storage.store(file);
+    
+    // Save reference in your table
+    await ctx.db.insert("documents", {
+      title: file.name,
+      storageId,
+      size: file.size,
+      contentType: file.type,
+    });
+    
+    return storageId;
+  },
+});
+```
+
+### Download from Functions
+
+```typescript
+import { query } from "./_generated/server";
+
+export const getFileUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => {
+    return await ctx.storage.getUrl(storageId);
+  },
+});
+```
+
+### Delete from Functions
+
+```typescript
+import { mutation } from "./_generated/server";
+
+export const deleteFile = mutation({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => {
+    await ctx.storage.delete(storageId);
+  },
+});
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Upload fails">
+    - Check file size against plan limits
+    - Verify network connection
+    - Try a different file format
+    - Check browser console for errors
+    - Ensure you have write permissions
+  </Accordion>
+  
+  <Accordion title="Can't preview file">
+    - Some file types don't support preview
+    - Try downloading and opening locally
+    - Check file isn't corrupted
+    - Verify content type is set correctly
+  </Accordion>
+  
+  <Accordion title="Files not showing">
+    - Check component filter
+    - Verify deployment connection
+    - Try refreshing the page
+    - Check date filter isn't too restrictive
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Manage file metadata in tables
+  </Card>
+  <Card title="Function Runner" icon="code" href="/features/function-runner">
+    Test file upload/download functions
+  </Card>
+  <Card title="File Storage Guide" icon="book" href="/features/file-storage">
+    Learn file storage best practices
+  </Card>
+  <Card title="API Reference" icon="brackets-curly" href="/api/utilities/storage">
+    Storage API documentation
+  </Card>
+</CardGroup>

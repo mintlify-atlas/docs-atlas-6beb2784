@@ -1,0 +1,260 @@
+---
+title: Data Browser
+description: Browse and manage your Convex database with a powerful data explorer
+icon: database
+---
+
+The Data Browser provides a comprehensive interface for viewing, editing, and managing all your Convex database tables and documents.
+
+<Frame>
+  <img src="https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2FScreenshot%202026-01-20%20at%2011.23.22%E2%80%AFPM.png?alt=media&token=b34df713-4c3f-45a2-87ff-3f826aa44d3d" alt="Data Browser Interface" />
+</Frame>
+
+## Overview
+
+The Data Browser is your primary interface for interacting with database tables in Convex Panel. It combines powerful filtering, sorting, and editing capabilities with an intuitive user interface.
+
+## Key Features
+
+### Multiple View Modes
+
+Choose the view that works best for your workflow:
+
+<CardGroup cols={2}>
+  <Card title="Table View" icon="table">
+    Spreadsheet-like interface for quick scanning and editing
+  </Card>
+  <Card title="List View" icon="list">
+    Vertical card layout ideal for documents with many fields
+  </Card>
+  <Card title="JSON View" icon="code">
+    Raw JSON representation for technical inspection
+  </Card>
+  <Card title="Raw View" icon="file-code">
+    Direct access to document structure and metadata
+  </Card>
+</CardGroup>
+
+### Document Operations
+
+Perform full CRUD operations directly in the browser:
+
+<Tabs>
+  <Tab title="Create">
+    **Add New Documents**
+    
+    Click the "Add Document" button to create new records:
+    - JSON editor with syntax validation
+    - Field type inference from schema
+    - Auto-completion for field names
+    - Duplicate existing documents as templates
+  </Tab>
+  
+  <Tab title="Read">
+    **View Documents**
+    
+    Inspect your data with rich formatting:
+    - Inline field expansion for nested objects
+    - Image previews for file references
+    - Formatted timestamps and IDs
+    - Quick copy values to clipboard
+  </Tab>
+  
+  <Tab title="Update">
+    **Edit In-Place**
+    
+    Edit documents directly in the table:
+    - Click any cell to start editing
+    - Side panel for complex edits
+    - Real-time validation
+    - Undo/redo support
+  </Tab>
+  
+  <Tab title="Delete">
+    **Remove Documents**
+    
+    Delete single or multiple documents:
+    - Select rows with checkboxes
+    - Bulk delete operations
+    - Confirmation dialogs
+    - Clear entire tables (with safety checks)
+  </Tab>
+</Tabs>
+
+### Advanced Filtering
+
+Filter your data with precision:
+
+<AccordionGroup>
+  <Accordion title="Filter Operators">
+    - **Equality**: `eq`, `neq` for exact matches
+    - **Comparison**: `gt`, `gte`, `lt`, `lte` for numbers and dates
+    - **Text**: Contains, starts with, ends with patterns
+    - **Existence**: Check if fields exist or are null
+    - **Arrays**: In, not in for list matching
+  </Accordion>
+  
+  <Accordion title="Multiple Conditions">
+    Combine filters with AND logic:
+    - Add unlimited filter clauses
+    - Each clause can target different fields
+    - Real-time result updates
+    - Save filters per table
+  </Accordion>
+  
+  <Accordion title="Natural Language Queries">
+    Use AI to build filters:
+    - Describe what you want in plain English
+    - Automatic conversion to filter syntax
+    - Supports complex multi-field queries
+    - Learn filter patterns from examples
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  Filters are automatically saved per table and restored when you return.
+</Note>
+
+### Sorting & Pagination
+
+Navigate large datasets efficiently:
+
+- **Sort by any field**: Click column headers to sort ascending/descending
+- **Multi-column sorting**: Hold Shift to sort by multiple fields
+- **Efficient pagination**: Load more documents on demand
+- **Scroll performance**: Virtualized rendering for thousands of rows
+
+### Column Visibility
+
+Customize your view to focus on relevant data:
+
+- Show/hide individual columns
+- Reorder columns by dragging
+- Auto-detect fields from documents
+- Sync visibility across sessions
+
+## Working with Tables
+
+### Table Sidebar
+
+The left sidebar shows all your database tables:
+
+- **Recently viewed**: Quick access to your most-used tables
+- **Search tables**: Filter by table name
+- **Document counts**: See table sizes at a glance
+- **Component filtering**: Switch between app and component tables
+
+### Schema Integration
+
+View and work with your Convex schema:
+
+<Card title="Schema Panel" icon="diagram-project">
+  Click the schema button to:
+  - View field definitions and types
+  - See required vs optional fields
+  - Check indexes on the table
+  - View table metrics and statistics
+</Card>
+
+### Table Operations
+
+Manage entire tables from the toolbar:
+
+- **Export**: Download table data as JSON
+- **Clear table**: Remove all documents (with confirmation)
+- **Delete table**: Remove the table entirely
+- **View indexes**: See database indexes for query optimization
+- **Table metrics**: View read/write statistics
+
+## Advanced Features
+
+### Custom Queries
+
+Run ad-hoc queries against your data:
+
+```typescript
+// Access custom query builder from table toolbar
+// Write JavaScript/TypeScript to filter and transform data
+const results = await db.query("tableName")
+  .filter(q => q.gte(q.field("score"), 100))
+  .order("desc")
+  .take(10);
+```
+
+### Relationship Navigation
+
+Navigate between related documents:
+
+- Click document ID fields to jump to referenced documents
+- Automatic detection of reference fields
+- Breadcrumb trail for navigation history
+- Return to previous table with one click
+
+### Keyboard Shortcuts
+
+<Tip>
+  Master these shortcuts for faster workflows:
+  - `Cmd/Ctrl + K`: Focus search
+  - `Cmd/Ctrl + N`: Add new document
+  - `Cmd/Ctrl + F`: Open filters
+  - `Escape`: Close panels/dialogs
+  - `Enter`: Edit selected cell
+</Tip>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Filters" icon="filter">
+    Apply filters before bulk operations to prevent accidents
+  </Card>
+  <Card title="Export Before Deleting" icon="download">
+    Always export data before clearing or deleting tables
+  </Card>
+  <Card title="Test in Dev" icon="flask">
+    Use development deployments for experimenting with data
+  </Card>
+  <Card title="Check Schema" icon="check">
+    Verify schema before editing to ensure data integrity
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Documents not loading">
+    - Check your deployment connection
+    - Verify you have read permissions
+    - Try refreshing the table
+    - Check for network connectivity
+  </Accordion>
+  
+  <Accordion title="Can't edit documents">
+    - Ensure you're using an admin key or token with write access
+    - Check if the table has any Convex validators blocking edits
+    - Verify the document ID is valid
+  </Accordion>
+  
+  <Accordion title="Filters not working">
+    - Check filter syntax matches field types
+    - Ensure field names are spelled correctly
+    - Try clearing and reapplying filters
+    - Use the natural language query for complex filters
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Schema Visualizer" icon="diagram-project" href="/features/schema-visualizer">
+    Visualize your database relationships
+  </Card>
+  <Card title="Function Runner" icon="play" href="/features/function-runner">
+    Test queries and mutations
+  </Card>
+  <Card title="Performance Advisor" icon="gauge" href="/features/performance-advisor">
+    Optimize your data access patterns
+  </Card>
+  <Card title="Logs" icon="scroll-text" href="/features/logs">
+    View database operation logs
+  </Card>
+</CardGroup>

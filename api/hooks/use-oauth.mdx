@@ -1,0 +1,290 @@
+---
+title: "useOAuth"
+description: "React hook for Convex OAuth authentication"
+---
+
+## Overview
+
+The `useOAuth` hook provides a complete OAuth 2.0 authentication flow for Convex, including automatic PKCE security, token storage, and state management. It handles the authorization redirect, callback processing, and token exchange with your server.
+
+## Signature
+
+```typescript
+function useOAuth(config: OAuthConfig | null): UseOAuthReturn
+```
+
+## Parameters
+
+<ParamField path="config" type="OAuthConfig | null" required>
+  OAuth configuration object. Pass `null` to disable authentication.
+
+  <Expandable title="OAuthConfig Properties">
+    <ResponseField name="clientId" type="string" required>
+      Your OAuth application's client ID from Convex Dashboard.
+    </ResponseField>
+
+    <ResponseField name="redirectUri" type="string" required>
+      The URI where users will be redirected after authentication. Must match the redirect URI registered in your OAuth application.
+    </ResponseField>
+
+    <ResponseField name="tokenExchangeUrl" type="string">
+      Server-side endpoint to exchange authorization code for access token. Required for production use to avoid CORS issues.
+      
+      Example: `https://your-deployment.convex.site/oauth/exchange`
+    </ResponseField>
+
+    <ResponseField name="scope" type="'team' | 'project'" default="'project'">
+      OAuth scope level:
+      - `'project'`: Access to a specific project
+      - `'team'`: Access to entire team
+    </ResponseField>
+
+    <ResponseField name="clientSecret" type="string">
+      OAuth client secret. Only needed for server-side token exchange. Never expose in client-side code.
+    </ResponseField>
+  </Expandable>
+</ParamField>
+
+## Return Value
+
+<ResponseField name="token" type="OAuthToken | null">
+  The current OAuth access token, or `null` if not authenticated.
+
+  <Expandable title="OAuthToken Properties">
+    <ResponseField name="access_token" type="string">
+      The OAuth access token string.
+    </ResponseField>
+
+    <ResponseField name="token_type" type="'bearer'">
+      Token type, always `'bearer'`.
+    </ResponseField>
+
+    <ResponseField name="expires_at" type="number">
+      Optional expiration timestamp (milliseconds since epoch).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="isAuthenticated" type="boolean">
+  Whether the user is currently authenticated (has a valid token).
+</ResponseField>
+
+<ResponseField name="isLoading" type="boolean">
+  Whether authentication is in progress (checking for stored tokens or processing OAuth callback).
+</ResponseField>
+
+<ResponseField name="error" type="string | null">
+  Error message if authentication failed, or `null` if no error.
+</ResponseField>
+
+<ResponseField name="authenticate" type="() => Promise<void>">
+  Function to initiate the OAuth flow. Redirects the user to Convex authorization page.
+</ResponseField>
+
+<ResponseField name="logout" type="() => void">
+  Function to clear the stored token and log out the user.
+</ResponseField>
+
+## Usage
+
+### Basic OAuth Setup
+
+```tsx
+import { useOAuth, ConvexPanel } from 'convex-panel';
+
+function App() {
+  const auth = useOAuth({
+    clientId: 'your-client-id',
+    redirectUri: 'http://localhost:5173',
+    tokenExchangeUrl: 'https://your-deployment.convex.site/oauth/exchange',
+    scope: 'project'
+  });
+
+  return <ConvexPanel auth={auth} />;
+}
+```
+
+### Custom Authentication UI
+
+```tsx
+import { useOAuth } from 'convex-panel';
+
+function CustomAuth() {
+  const { 
+    isAuthenticated, 
+    isLoading, 
+    error, 
+    authenticate, 
+    logout 
+  } = useOAuth({
+    clientId: process.env.REACT_APP_CONVEX_CLIENT_ID!,
+    redirectUri: window.location.origin,
+    tokenExchangeUrl: '/api/convex/exchange',
+    scope: 'project'
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <button onClick={authenticate}>
+        Sign in with Convex
+      </button>
+    );
+  }
+
+  return (
+    <div>
+      <p>Authenticated!</p>
+      <button onClick={logout}>Sign out</button>
+    </div>
+  );
+}
+```
+
+### Team-Level Access
+
+```tsx
+import { useOAuth } from 'convex-panel';
+
+function TeamDashboard() {
+  const auth = useOAuth({
+    clientId: 'your-client-id',
+    redirectUri: 'http://localhost:5173',
+    tokenExchangeUrl: '/api/convex/exchange',
+    scope: 'team' // Access entire team instead of single project
+  });
+
+  // Use auth with ConvexPanel or other components
+}
+```
+
+## Security Features
+
+### PKCE (Proof Key for Code Exchange)
+
+The hook automatically implements PKCE for enhanced security:
+- Generates a cryptographic code verifier
+- Creates SHA-256 code challenge
+- Validates the exchange during callback
+
+### State Validation
+
+Protects against CSRF attacks:
+- Generates random state parameter
+- Stores state in session storage
+- Validates state matches on callback
+
+### Token Storage
+
+- Tokens stored in `localStorage` for persistence
+- PKCE verifiers stored in `sessionStorage` (cleared after use)
+- Automatic token expiration checking
+
+### Duplicate Prevention
+
+Prevents duplicate token exchanges in React StrictMode:
+- Tracks used authorization codes
+- Deduplicates concurrent exchanges
+- Safe for development with StrictMode enabled
+
+## Server-Side Token Exchange
+
+For production deployments, you must implement a server-side token exchange endpoint to avoid CORS issues and protect your client secret.
+
+### Example Express.js Endpoint
+
+```typescript
+app.post('/api/convex/exchange', async (req, res) => {
+  const { code, codeVerifier, redirectUri, clientId } = req.body;
+
+  const response = await fetch('https://api.convex.dev/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: process.env.CONVEX_CLIENT_SECRET!,
+      code,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+      grant_type: 'authorization_code'
+    })
+  });
+
+  const token = await response.json();
+  res.json(token);
+});
+```
+
+## Error Handling
+
+The hook provides detailed error messages for common issues:
+
+```tsx
+const { error } = useOAuth(config);
+
+if (error) {
+  if (error.includes('state mismatch')) {
+    // CSRF protection triggered
+    console.error('Security error: State mismatch');
+  } else if (error.includes('CORS')) {
+    // Missing tokenExchangeUrl
+    console.error('Configure tokenExchangeUrl for server-side exchange');
+  } else if (error.includes('Configuration error')) {
+    // Invalid OAuth configuration
+    console.error('Fix OAuth config:', error);
+  }
+}
+```
+
+## Related Utilities
+
+<CardGroup cols={2}>
+  <Card title="buildAuthorizationUrl" icon="link" href="/api/utilities/oauth#buildauthorizationurl">
+    Build OAuth authorization URL manually
+  </Card>
+  <Card title="exchangeCodeForToken" icon="key" href="/api/utilities/oauth#exchangecodefortoken">
+    Exchange authorization code for token
+  </Card>
+  <Card title="getStoredToken" icon="database" href="/api/utilities/oauth#getstoredtoken">
+    Retrieve stored OAuth token
+  </Card>
+  <Card title="clearToken" icon="trash" href="/api/utilities/oauth#cleartoken">
+    Clear stored OAuth token
+  </Card>
+</CardGroup>
+
+## Type Definitions
+
+```typescript
+interface UseOAuthReturn {
+  token: OAuthToken | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  authenticate: () => Promise<void>;
+  logout: () => void;
+}
+
+interface OAuthConfig {
+  clientId: string;
+  clientSecret?: string;
+  redirectUri: string;
+  scope?: 'team' | 'project';
+  tokenExchangeUrl?: string;
+}
+
+interface OAuthToken {
+  access_token: string;
+  token_type: 'bearer';
+  expires_at?: number;
+}
+
+type TokenScope = 'team' | 'project';
+```

@@ -1,0 +1,624 @@
+---
+title: Metrics Utilities
+description: Functions for fetching deployment metrics and analytics from Convex
+---
+
+Utilities for fetching various metrics and analytics data from the Convex API. These functions help you monitor deployment health, function performance, and system metrics.
+
+## Core Metrics
+
+### fetchFailureRate
+
+Fetches the failure rate metric for your deployment over the last 26 minutes.
+
+```typescript
+async function fetchFailureRate(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  fetchFn?: FetchFn
+): Promise<any>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment (e.g., `https://your-deployment.convex.cloud`)
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data instead of making API calls
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function for CORS-free environments (e.g., Tauri)
+</ParamField>
+
+**Returns:** Promise resolving to failure rate data with 26 time buckets
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchFailureRate } from 'convex-panel';
+
+const failureRate = await fetchFailureRate(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token'
+);
+
+console.log('Failure rate:', failureRate);
+```
+</Card>
+
+### fetchCacheHitRate
+
+Fetches the cache hit rate for query caching over the last 26 minutes.
+
+```typescript
+async function fetchCacheHitRate(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  fetchFn?: FetchFn
+): Promise<any>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to cache hit rate data
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchCacheHitRate } from 'convex-panel';
+
+const cacheHitRate = await fetchCacheHitRate(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token'
+);
+
+console.log('Cache hit rate:', cacheHitRate);
+```
+</Card>
+
+### fetchSchedulerLag
+
+Fetches the scheduler lag metric for scheduled functions over the last 26 minutes.
+
+```typescript
+async function fetchSchedulerLag(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  fetchFn?: FetchFn
+): Promise<any>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to scheduler lag data
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchSchedulerLag } from 'convex-panel';
+
+const schedulerLag = await fetchSchedulerLag(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token'
+);
+
+console.log('Scheduler lag:', schedulerLag);
+```
+</Card>
+
+## Performance Metrics
+
+### fetchLatencyPercentiles
+
+Fetches latency percentiles (p50, p95, p99) from execution statistics.
+
+```typescript
+async function fetchLatencyPercentiles(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  fetchFn?: FetchFn
+): Promise<Array<[number, Array<[TimeStamp, number]>]>>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to array of `[percentile, timeseries]` tuples (p50, p95, p99)
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchLatencyPercentiles } from 'convex-panel';
+
+const latency = await fetchLatencyPercentiles(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token'
+);
+
+// latency = [[50, [...]], [95, [...]], [99, [...]]]
+const [p50, p95, p99] = latency;
+console.log('p95 latency:', p95);
+```
+</Card>
+
+### fetchUdfRate
+
+Fetches aggregate UDF (User-Defined Function) invocation rate.
+
+```typescript
+async function fetchUdfRate(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  fetchFn?: FetchFn
+): Promise<any>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to UDF invocation rate time series data
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchUdfRate } from 'convex-panel';
+
+const udfRate = await fetchUdfRate(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token'
+);
+
+console.log('UDF invocation rate:', udfRate);
+```
+</Card>
+
+## Function Execution
+
+### fetchUdfExecutionStats
+
+Fetches UDF execution statistics with streaming cursor support.
+
+```typescript
+async function fetchUdfExecutionStats(
+  deploymentUrl: string,
+  authToken: string,
+  cursor?: number,
+  fetchFn?: FetchFn
+): Promise<StreamUdfExecutionResponse>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="cursor" type="number" default="0">
+  Cursor position to start streaming from (Unix timestamp in milliseconds)
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to `StreamUdfExecutionResponse` with entries and new cursor
+
+<ResponseField name="entries" type="FunctionExecutionStats[]">
+  Array of function execution statistics
+</ResponseField>
+
+<ResponseField name="new_cursor" type="number">
+  Updated cursor for next fetch
+</ResponseField>
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchUdfExecutionStats } from 'convex-panel';
+
+let cursor = 0;
+const stats = await fetchUdfExecutionStats(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token',
+  cursor
+);
+
+console.log('Executions:', stats.entries);
+cursor = stats.new_cursor; // Use for next fetch
+```
+</Card>
+
+### aggregateFunctionStats
+
+Aggregates function execution statistics into time-bucketed data.
+
+```typescript
+function aggregateFunctionStats(
+  entries: FunctionExecutionStats[],
+  functionIdentifier: string,
+  functionName: string,
+  functionPath: string,
+  timeStart: number,
+  timeEnd: number,
+  numBuckets?: number
+): AggregatedFunctionStats
+```
+
+<ParamField path="entries" type="FunctionExecutionStats[]" required>
+  Array of function execution entries from `fetchUdfExecutionStats`
+</ParamField>
+
+<ParamField path="functionIdentifier" type="string" required>
+  The primary function identifier to filter by
+</ParamField>
+
+<ParamField path="functionName" type="string" required>
+  Function name for fallback matching
+</ParamField>
+
+<ParamField path="functionPath" type="string" required>
+  Module path for fallback matching
+</ParamField>
+
+<ParamField path="timeStart" type="number" required>
+  Start of time window in seconds (Unix timestamp)
+</ParamField>
+
+<ParamField path="timeEnd" type="number" required>
+  End of time window in seconds (Unix timestamp)
+</ParamField>
+
+<ParamField path="numBuckets" type="number" default="30">
+  Number of time buckets to divide the window into
+</ParamField>
+
+**Returns:** `AggregatedFunctionStats` object with arrays of metrics per bucket
+
+<ResponseField name="invocations" type="number[]">
+  Number of invocations per time bucket
+</ResponseField>
+
+<ResponseField name="errors" type="number[]">
+  Number of errors per time bucket
+</ResponseField>
+
+<ResponseField name="executionTimes" type="number[]">
+  Median execution time (ms) per time bucket
+</ResponseField>
+
+<ResponseField name="cacheHits" type="number[]">
+  Cache hit rate percentage per time bucket
+</ResponseField>
+
+<Card title="Example" icon="code">
+```typescript
+import { 
+  fetchUdfExecutionStats, 
+  aggregateFunctionStats 
+} from 'convex-panel';
+
+const stats = await fetchUdfExecutionStats(
+  deploymentUrl,
+  authToken,
+  cursor
+);
+
+const now = Math.floor(Date.now() / 1000);
+const oneHourAgo = now - 3600;
+
+const aggregated = aggregateFunctionStats(
+  stats.entries,
+  'myFunction',
+  'myFunction',
+  'functions/myFunction',
+  oneHourAgo,
+  now,
+  30 // 30 buckets = 2 minutes per bucket
+);
+
+console.log('Invocations per bucket:', aggregated.invocations);
+console.log('Error rates per bucket:', aggregated.errors);
+```
+</Card>
+
+## Table Metrics
+
+### fetchTableRate
+
+Fetches table-specific metrics like read/write rates.
+
+```typescript
+async function fetchTableRate(
+  deploymentUrl: string,
+  tableName: string,
+  metric: TableMetric,
+  start: Date,
+  end: Date,
+  numBuckets: number,
+  authToken: string,
+  fetchFn?: FetchFn
+): Promise<TimeseriesBucket[]>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="tableName" type="string" required>
+  Name of the table
+</ParamField>
+
+<ParamField path="metric" type="TableMetric" required>
+  Metric to fetch (e.g., read rate, write rate)
+</ParamField>
+
+<ParamField path="start" type="Date" required>
+  Start date for the time window
+</ParamField>
+
+<ParamField path="end" type="Date" required>
+  End date for the time window
+</ParamField>
+
+<ParamField path="numBuckets" type="number" required>
+  Number of time buckets
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to array of `TimeseriesBucket` objects
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchTableRate } from 'convex-panel';
+
+const end = new Date();
+const start = new Date(end.getTime() - 60 * 60 * 1000); // 1 hour ago
+
+const tableRate = await fetchTableRate(
+  'https://your-deployment.convex.cloud',
+  'users',
+  'reads',
+  start,
+  end,
+  30,
+  'your-auth-token'
+);
+
+tableRate.forEach(bucket => {
+  console.log(`Time: ${bucket.time}, Metric: ${bucket.metric}`);
+});
+```
+</Card>
+
+## Error Tracking
+
+### fetchRecentErrors
+
+Fetches recent errors from deployment logs.
+
+```typescript
+async function fetchRecentErrors(
+  deploymentUrl: string,
+  authToken: string,
+  useMockData?: boolean,
+  hoursBack?: number,
+  fetchFn?: FetchFn
+): Promise<{
+  count: number;
+  topErrors: Array<{ message: string; count: number }>;
+}>
+```
+
+<ParamField path="deploymentUrl" type="string" required>
+  The URL of your Convex deployment
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for the deployment
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Whether to use mock data
+</ParamField>
+
+<ParamField path="hoursBack" type="number" default="1">
+  Number of hours to look back for errors
+</ParamField>
+
+<ParamField path="fetchFn" type="FetchFn">
+  Custom fetch function
+</ParamField>
+
+**Returns:** Promise resolving to error statistics
+
+<ResponseField name="count" type="number">
+  Total number of errors
+</ResponseField>
+
+<ResponseField name="topErrors" type="Array<{message: string, count: number}>">
+  Top 5 most frequent error messages with their counts
+</ResponseField>
+
+<Card title="Example" icon="code">
+```typescript
+import { fetchRecentErrors } from 'convex-panel';
+
+const errors = await fetchRecentErrors(
+  'https://your-deployment.convex.cloud',
+  'your-auth-token',
+  false,
+  24 // last 24 hours
+);
+
+console.log(`Total errors: ${errors.count}`);
+errors.topErrors.forEach(error => {
+  console.log(`${error.message}: ${error.count} occurrences`);
+});
+```
+</Card>
+
+## Complete Monitoring Example
+
+<Card title="Example: Health Dashboard" icon="chart-line">
+```typescript
+import {
+  fetchFailureRate,
+  fetchCacheHitRate,
+  fetchSchedulerLag,
+  fetchLatencyPercentiles,
+  fetchRecentErrors,
+  getStoredToken
+} from 'convex-panel';
+
+const deploymentUrl = 'https://your-deployment.convex.cloud';
+const token = getStoredToken();
+
+if (!token) {
+  throw new Error('Not authenticated');
+}
+
+async function fetchAllMetrics() {
+  try {
+    const [failure, cache, lag, latency, errors] = await Promise.all([
+      fetchFailureRate(deploymentUrl, token.access_token),
+      fetchCacheHitRate(deploymentUrl, token.access_token),
+      fetchSchedulerLag(deploymentUrl, token.access_token),
+      fetchLatencyPercentiles(deploymentUrl, token.access_token),
+      fetchRecentErrors(deploymentUrl, token.access_token, false, 1)
+    ]);
+
+    return {
+      failureRate: failure,
+      cacheHitRate: cache,
+      schedulerLag: lag,
+      latency: {
+        p50: latency[0],
+        p95: latency[1],
+        p99: latency[2]
+      },
+      errors
+    };
+  } catch (error) {
+    console.error('Failed to fetch metrics:', error);
+    throw error;
+  }
+}
+
+// Use in your dashboard
+const metrics = await fetchAllMetrics();
+console.log('Dashboard metrics:', metrics);
+```
+</Card>
+
+## Types
+
+### FetchFn
+
+```typescript
+type FetchFn = (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+```
+
+Custom fetch function type for environments with special CORS handling (e.g., Tauri apps).
+
+### TimeseriesBucket
+
+```typescript
+interface TimeseriesBucket {
+  time: Date;
+  metric: number | null;
+}
+```
+
+### TableMetric
+
+```typescript
+type TableMetric = 'reads' | 'writes' | 'storage';
+```
+
+## Notes
+
+<Note>
+  All metrics functions that fetch time-series data use a 26-bucket system by default, with each bucket representing 1 minute for a 26-minute window.
+</Note>
+
+<Warning>
+  These functions require valid authentication tokens. Tokens can be expired, so always handle authentication errors appropriately and refresh tokens when needed.
+</Warning>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="OAuth Utilities" icon="lock" href="/api/utilities/oauth">
+    Authentication utilities for obtaining tokens
+  </Card>
+  <Card title="Health View" icon="heart-pulse" href="/api/components/views">
+    Pre-built health monitoring component
+  </Card>
+</CardGroup>

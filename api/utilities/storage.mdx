@@ -1,0 +1,587 @@
+---
+title: Storage Utilities
+description: Local storage utilities with in-memory caching for Convex Panel
+---
+
+Utilities for managing local storage with built-in in-memory caching for optimal performance. These functions handle storage operations for filters, table state, and user preferences.
+
+## Core Storage Functions
+
+### getStorageItem
+
+Retrieves a value from localStorage with automatic in-memory caching.
+
+```typescript
+function getStorageItem<T>(key: string, defaultValue: T): T
+```
+
+<ParamField path="key" type="string" required>
+  Storage key to retrieve
+</ParamField>
+
+<ParamField path="defaultValue" type="T" required>
+  Default value to return if key doesn't exist
+</ParamField>
+
+**Returns:** The stored value of type `T`, or `defaultValue` if not found
+
+<Card title="Example" icon="code">
+```typescript
+import { getStorageItem } from 'convex-panel';
+
+const theme = getStorageItem('app-theme', 'light');
+console.log('Current theme:', theme);
+
+const settings = getStorageItem('user-settings', {
+  notifications: true,
+  darkMode: false
+});
+```
+</Card>
+
+<Note>
+  Values are automatically cached in memory after first retrieval. Subsequent calls return the cached value without reading from localStorage.
+</Note>
+
+### setStorageItem
+
+Stores a value in localStorage and updates the in-memory cache.
+
+```typescript
+function setStorageItem<T>(key: string, value: T): void
+```
+
+<ParamField path="key" type="string" required>
+  Storage key
+</ParamField>
+
+<ParamField path="value" type="T" required>
+  Value to store (will be JSON serialized)
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { setStorageItem } from 'convex-panel';
+
+setStorageItem('app-theme', 'dark');
+
+setStorageItem('user-settings', {
+  notifications: false,
+  darkMode: true
+});
+```
+</Card>
+
+### removeStorageItem
+
+Removes a value from localStorage.
+
+```typescript
+function removeStorageItem(key: string): void
+```
+
+<ParamField path="key" type="string" required>
+  Storage key to remove
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { removeStorageItem } from 'convex-panel';
+
+removeStorageItem('temporary-data');
+```
+</Card>
+
+## Table Management
+
+### getTableFilters
+
+Retrieves stored filters for a specific table with optimized caching.
+
+```typescript
+function getTableFilters(tableName: string): {
+  clauses: FilterClause[];
+}
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table
+</ParamField>
+
+**Returns:** Object containing filter clauses array
+
+<Card title="Example" icon="code">
+```typescript
+import { getTableFilters } from 'convex-panel';
+
+const filters = getTableFilters('users');
+console.log('Active filters:', filters.clauses);
+
+// filters = {
+//   clauses: [
+//     { field: 'status', operator: 'eq', value: 'active' },
+//     { field: 'age', operator: 'gte', value: 18 }
+//   ]
+// }
+```
+</Card>
+
+### saveTableFilters
+
+Saves filters for a specific table with optimized caching.
+
+```typescript
+function saveTableFilters(
+  tableName: string,
+  filters: { clauses: FilterClause[] }
+): void
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table
+</ParamField>
+
+<ParamField path="filters" type="{clauses: FilterClause[]}" required>
+  Filter configuration object
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { saveTableFilters } from 'convex-panel';
+
+saveTableFilters('users', {
+  clauses: [
+    { field: 'status', operator: 'eq', value: 'active' },
+    { field: 'age', operator: 'gte', value: 18 }
+  ]
+});
+```
+</Card>
+
+<Note>
+  If the clauses array is empty, the table entry is removed from storage completely to keep storage clean.
+</Note>
+
+### getTableSortConfig
+
+Retrieves the sort configuration for a specific table.
+
+```typescript
+function getTableSortConfig(tableName: string): SortConfig | null
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table
+</ParamField>
+
+**Returns:** Sort configuration object or null if not set
+
+<Card title="Example" icon="code">
+```typescript
+import { getTableSortConfig } from 'convex-panel';
+
+const sortConfig = getTableSortConfig('users');
+if (sortConfig) {
+  console.log(`Sorted by ${sortConfig.field} ${sortConfig.direction}`);
+}
+```
+</Card>
+
+### saveTableSortConfig
+
+Saves the sort configuration for a specific table.
+
+```typescript
+function saveTableSortConfig(
+  tableName: string,
+  sortConfig: SortConfig | null
+): void
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table
+</ParamField>
+
+<ParamField path="sortConfig" type="SortConfig | null" required>
+  Sort configuration object, or null to clear
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { saveTableSortConfig } from 'convex-panel';
+
+saveTableSortConfig('users', {
+  field: 'createdAt',
+  direction: 'desc'
+});
+
+// Clear sort
+saveTableSortConfig('users', null);
+```
+</Card>
+
+### getActiveTable
+
+Retrieves the currently active table name from storage.
+
+```typescript
+function getActiveTable(): string
+```
+
+**Returns:** The active table name, or empty string if not set
+
+<Card title="Example" icon="code">
+```typescript
+import { getActiveTable } from 'convex-panel';
+
+const activeTable = getActiveTable();
+if (activeTable) {
+  console.log('Viewing table:', activeTable);
+}
+```
+</Card>
+
+### saveActiveTable
+
+Saves the currently active table name to storage.
+
+```typescript
+function saveActiveTable(tableName: string): void
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table to set as active
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { saveActiveTable } from 'convex-panel';
+
+saveActiveTable('users');
+```
+</Card>
+
+## Recently Viewed
+
+### getRecentlyViewedTables
+
+Retrieves the list of recently viewed tables.
+
+```typescript
+function getRecentlyViewedTables(): Array<{
+  name: string;
+  timestamp: number;
+}>
+```
+
+**Returns:** Array of recently viewed table objects, sorted by most recent
+
+<Card title="Example" icon="code">
+```typescript
+import { getRecentlyViewedTables } from 'convex-panel';
+
+const recentTables = getRecentlyViewedTables();
+recentTables.forEach(table => {
+  const date = new Date(table.timestamp);
+  console.log(`${table.name} - last viewed ${date.toLocaleString()}`);
+});
+```
+</Card>
+
+### updateRecentlyViewedTable
+
+Adds or updates a table in the recently viewed list.
+
+```typescript
+function updateRecentlyViewedTable(tableName: string): void
+```
+
+<ParamField path="tableName" type="string" required>
+  Name of the table to add to recently viewed
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import { updateRecentlyViewedTable } from 'convex-panel';
+
+// When user views a table
+function onTableView(tableName: string) {
+  updateRecentlyViewedTable(tableName);
+  // Table is now at the top of recently viewed list
+}
+```
+</Card>
+
+<Note>
+  - If the table already exists in the list, it's moved to the top with an updated timestamp
+  - Only the 10 most recent tables are kept
+  - Older tables are automatically removed
+</Note>
+
+## Filter History
+
+### getFilterHistoryRetentionMs
+
+Retrieves the filter history retention time in milliseconds.
+
+```typescript
+function getFilterHistoryRetentionMs(): number
+```
+
+**Returns:** Retention time in milliseconds (default: 24 hours)
+
+### setFilterHistoryRetentionMs
+
+Sets the filter history retention time in milliseconds.
+
+```typescript
+function setFilterHistoryRetentionMs(retentionMs: number): void
+```
+
+<ParamField path="retentionMs" type="number" required>
+  Retention time in milliseconds (minimum: 1 hour)
+</ParamField>
+
+### getFilterHistoryRetentionHours
+
+Retrieves the filter history retention time in hours.
+
+```typescript
+function getFilterHistoryRetentionHours(): number
+```
+
+**Returns:** Retention time in hours
+
+### setFilterHistoryRetentionHours
+
+Sets the filter history retention time in hours.
+
+```typescript
+function setFilterHistoryRetentionHours(retentionHours: number): void
+```
+
+<ParamField path="retentionHours" type="number" required>
+  Retention time in hours (minimum: 1 hour)
+</ParamField>
+
+<Card title="Example" icon="code">
+```typescript
+import {
+  getFilterHistoryRetentionHours,
+  setFilterHistoryRetentionHours
+} from 'convex-panel';
+
+// Get current retention
+const currentHours = getFilterHistoryRetentionHours();
+console.log(`Filter history kept for ${currentHours} hours`);
+
+// Set retention to 48 hours
+setFilterHistoryRetentionHours(48);
+```
+</Card>
+
+## Logs Filters
+
+### LogsFilters Interface
+
+```typescript
+interface LogsFilters {
+  searchQuery?: string;
+  logTypes?: string[];
+  functionIds?: string[];
+  componentIds?: string[];
+}
+```
+
+### getLogsFilters
+
+Retrieves stored logs view filters.
+
+```typescript
+function getLogsFilters(): LogsFilters | null
+```
+
+**Returns:** Logs filter configuration or null if not set
+
+### saveLogsFilters
+
+Saves logs view filters to storage.
+
+```typescript
+function saveLogsFilters(filters: LogsFilters): void
+```
+
+<ParamField path="filters" type="LogsFilters" required>
+  Logs filter configuration
+</ParamField>
+
+### clearLogsFilters
+
+Clears logs filters from storage.
+
+```typescript
+function clearLogsFilters(): void
+```
+
+<Card title="Example" icon="code">
+```typescript
+import {
+  getLogsFilters,
+  saveLogsFilters,
+  clearLogsFilters
+} from 'convex-panel';
+
+// Save filters
+saveLogsFilters({
+  searchQuery: 'error',
+  logTypes: ['ERROR', 'WARN'],
+  functionIds: ['users/create', 'auth/login']
+});
+
+// Retrieve filters
+const filters = getLogsFilters();
+console.log('Active log filters:', filters);
+
+// Clear filters
+clearLogsFilters();
+```
+</Card>
+
+## Storage Cleanup
+
+### clearAllStorage
+
+Clears all Convex Panel data from storage (for debugging or reset).
+
+```typescript
+function clearAllStorage(): void
+```
+
+<Warning>
+  This function removes ALL Convex Panel data including:
+  - OAuth tokens
+  - Table filters and sort configurations
+  - Recently viewed tables
+  - User preferences
+  - All cached data
+  
+  Use with caution!
+</Warning>
+
+<Card title="Example" icon="code">
+```typescript
+import { clearAllStorage } from 'convex-panel';
+
+function handleReset() {
+  if (confirm('Clear all Convex Panel data?')) {
+    clearAllStorage();
+    window.location.reload();
+  }
+}
+```
+</Card>
+
+## Complete Table State Example
+
+<Card title="Example: Managing Table State" icon="table">
+```typescript
+import {
+  getActiveTable,
+  saveActiveTable,
+  getTableFilters,
+  saveTableFilters,
+  getTableSortConfig,
+  saveTableSortConfig,
+  updateRecentlyViewedTable
+} from 'convex-panel';
+
+function TableManager() {
+  // Get current table
+  const currentTable = getActiveTable();
+  
+  // Switch to a different table
+  function switchTable(tableName: string) {
+    // Save as active
+    saveActiveTable(tableName);
+    
+    // Update recently viewed
+    updateRecentlyViewedTable(tableName);
+    
+    // Load table state
+    const filters = getTableFilters(tableName);
+    const sortConfig = getTableSortConfig(tableName);
+    
+    console.log('Switched to table:', tableName);
+    console.log('Filters:', filters);
+    console.log('Sort:', sortConfig);
+  }
+  
+  // Apply filters to current table
+  function applyFilters(filters: any) {
+    const tableName = getActiveTable();
+    if (tableName) {
+      saveTableFilters(tableName, filters);
+      console.log('Filters applied');
+    }
+  }
+  
+  // Apply sort to current table
+  function applySort(field: string, direction: 'asc' | 'desc') {
+    const tableName = getActiveTable();
+    if (tableName) {
+      saveTableSortConfig(tableName, { field, direction });
+      console.log(`Sorted by ${field} ${direction}`);
+    }
+  }
+  
+  return {
+    currentTable,
+    switchTable,
+    applyFilters,
+    applySort
+  };
+}
+
+// Usage
+const manager = TableManager();
+manager.switchTable('users');
+manager.applyFilters({
+  clauses: [
+    { field: 'status', operator: 'eq', value: 'active' }
+  ]
+});
+manager.applySort('createdAt', 'desc');
+```
+</Card>
+
+## Storage Keys
+
+All Convex Panel storage keys use the prefix `convex-panel:` to avoid conflicts. Common keys include:
+
+- `convex-panel:oauth-token` - OAuth access token
+- `convex-panel:active-table` - Currently active table
+- `convex-panel:table-filters` - All table filters
+- `convex-panel:recently-viewed-tables` - Recently viewed tables list
+- `convex-panel:logs-filters` - Logs view filters
+- `convex-panel:theme` - UI theme preference
+
+## Performance Notes
+
+<Note>
+  **In-Memory Caching**: All storage operations use an in-memory cache to minimize localStorage reads. The first access reads from localStorage, subsequent accesses use the cached value.
+  
+  **Write-Through**: Writes update both the memory cache and localStorage simultaneously for consistency.
+  
+  **SSR Safety**: All functions check for `window` existence and gracefully handle server-side rendering scenarios.
+</Note>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Data View" icon="table" href="/api/components/views">
+    Pre-built data browsing component that uses storage utilities
+  </Card>
+  <Card title="Logs View" icon="scroll" href="/api/components/views">
+    Logs viewer that persists filter state
+  </Card>
+</CardGroup>

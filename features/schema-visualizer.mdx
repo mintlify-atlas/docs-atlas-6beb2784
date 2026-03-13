@@ -1,0 +1,515 @@
+---
+title: Schema Visualizer
+description: Visualize your database schema with interactive diagrams and relationship mapping
+icon: diagram-project
+---
+
+The Schema Visualizer provides an interactive, visual representation of your Convex database structure, making it easy to understand table relationships and design patterns.
+
+## Overview
+
+Visualize your entire database schema as an interactive diagram. See tables, fields, relationships, and indexes at a glance. The Schema Visualizer uses ReactFlow to create dynamic, explorable diagrams of your data model.
+
+<Note>
+  Access the Schema Visualizer from the Data Browser by clicking the schema icon in the toolbar.
+</Note>
+
+## Key Features
+
+### Interactive Diagram
+
+<CardGroup cols={2}>
+  <Card title="Visual Representation" icon="eye">
+    See your entire database structure in one view
+  </Card>
+  <Card title="Drag & Rearrange" icon="hand">
+    Move tables around to organize your view
+  </Card>
+  <Card title="Zoom & Pan" icon="magnifying-glass">
+    Navigate large schemas with mouse/trackpad
+  </Card>
+  <Card title="Auto-Layout" icon="wand-magic-sparkles">
+    Multiple layout algorithms for optimal viewing
+  </Card>
+</CardGroup>
+
+### Table Nodes
+
+Each table displays:
+
+```
+┌─────────────────────────────┐
+│  📊 messages                │
+├─────────────────────────────┤
+│  _id: Id<"messages">        │
+│  _creationTime: number      │
+│  userId: Id<"users">    ━━━ │──→ (link to users table)
+│  text: string               │
+│  channel: string            │
+│  metadata?: object          │
+├─────────────────────────────┤
+│  📑 Indexes: 2              │
+│  📝 Documents: 1,234        │
+└─────────────────────────────┘
+```
+
+<Tabs>
+  <Tab title="Fields">
+    **Field Information**
+    
+    Each field shows:
+    - **Field name**: The property name
+    - **Type**: TypeScript/Convex type
+    - **Optional marker**: `?` for optional fields
+    - **Reference indicator**: Links to other tables
+    
+    <Tip>
+      Click a field name to see its full type definition.
+    </Tip>
+  </Tab>
+  
+  <Tab title="Relationships">
+    **Visual Connections**
+    
+    Relationships shown as arrows:
+    - **Solid line**: Direct reference (`Id<"table">`)
+    - **Dashed line**: Inferred relationship
+    - **Arrow direction**: From referencing to referenced
+    - **Bidirectional**: When both tables reference each other
+    
+    ```
+    messages ━━━━━━→ users
+           ←━━━━━━━ (userId field)
+    ```
+  </Tab>
+  
+  <Tab title="Indexes">
+    **Index Indicators**
+    
+    See which fields are indexed:
+    - Count of indexes on table
+    - Click to view index details
+    - Index names and field combinations
+    - Unique vs non-unique indexes
+  </Tab>
+  
+  <Tab title="Stats">
+    **Table Statistics**
+    
+    Quick metrics for each table:
+    - Document count
+    - Field count
+    - Index count
+    - Last modified time
+  </Tab>
+</Tabs>
+
+## Layout Algorithms
+
+Choose the best layout for your schema:
+
+<CardGroup cols={3}>
+  <Card title="Force-Directed" icon="magnet">
+    Physics-based automatic layout
+    - Tables repel each other
+    - Relationships pull tables together
+    - Creates organic, readable layouts
+    - Best for: Medium schemas (5-20 tables)
+  </Card>
+  
+  <Card title="Hierarchical" icon="sitemap">
+    Tree-like top-down structure
+    - Parent tables at top
+    - Child tables below
+    - Clear dependency flow
+    - Best for: Clear hierarchies
+  </Card>
+  
+  <Card title="Radial" icon="circle-nodes">
+    Circular arrangement
+    - Core tables in center
+    - Related tables around edges
+    - Emphasizes central entities
+    - Best for: Star schemas
+  </Card>
+</CardGroup>
+
+<Tip>
+  Try different layouts to find the clearest view for your schema. Your layout choice is saved per project.
+</Tip>
+
+## Git Integration
+
+Track schema changes over time:
+
+### Visual Diff Mode
+
+Compare schema versions:
+
+<Steps>
+  <Step title="Connect Git">
+    Link your GitHub repository in Settings
+  </Step>
+  <Step title="Select commits">
+    Choose two commits to compare
+  </Step>
+  <Step title="View diff">
+    See visual representation of changes
+  </Step>
+</Steps>
+
+```diff
+┌─────────────────────────────┐
+│  📊 messages                │
+├─────────────────────────────┤
+│  _id: Id<"messages">        │
+│  _creationTime: number      │
+│  userId: Id<"users">        │
+│  text: string               │
++ channel: string             │  ← Added field
+- category: string            │  ← Removed field
+│  metadata?: object          │
+└─────────────────────────────┘
+```
+
+### Change Indicators
+
+<CardGroup cols={3}>
+  <Card title="Added" icon="plus">
+    🟢 New tables/fields in green
+  </Card>
+  <Card title="Removed" icon="minus">
+    🔴 Deleted tables/fields in red
+  </Card>
+  <Card title="Modified" icon="pen">
+    🟡 Changed types/properties in yellow
+  </Card>
+</CardGroup>
+
+## Export Options
+
+Save your schema diagrams:
+
+<Tabs>
+  <Tab title="PNG Export">
+    **Raster Image**
+    
+    Download as PNG file:
+    - High resolution (2x/3x available)
+    - Transparent or white background
+    - Includes current zoom/pan view
+    - Perfect for documentation
+    
+    Use cases:
+    - README files
+    - Wiki pages  
+    - Presentations
+    - Team documentation
+  </Tab>
+  
+  <Tab title="SVG Export">
+    **Vector Graphic**
+    
+    Download as SVG file:
+    - Infinite scaling without quality loss
+    - Editable in design tools
+    - Smaller file size
+    - Web-friendly format
+    
+    Use cases:
+    - Technical diagrams
+    - Print materials
+    - Design mockups
+    - Interactive docs
+  </Tab>
+  
+  <Tab title="JSON Export">
+    **Schema Data**
+    
+    Export schema as JSON:
+    - Complete table definitions
+    - Field types and validators
+    - Index configurations
+    - Programmatic processing
+    
+    ```json
+    {
+      "tables": {
+        "messages": {
+          "fields": {
+            "userId": "Id<users>",
+            "text": "string"
+          },
+          "indexes": ["by_user", "by_channel"]
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Filter & Focus
+
+Navigate complex schemas:
+
+### Table Filtering
+
+<AccordionGroup>
+  <Accordion title="By name">
+    Search box to filter visible tables:
+    - Type-ahead search
+    - Regex support
+    - Case-insensitive
+    - Highlights matches
+  </Accordion>
+  
+  <Accordion title="By relationship">
+    Show only related tables:
+    - Click a table to highlight connections
+    - Show direct references only
+    - Show full dependency tree
+    - Isolate table clusters
+  </Accordion>
+  
+  <Accordion title="By component">
+    Filter by Convex component:
+    - Main app tables
+    - Specific component tables
+    - Multi-component view
+    - Component boundaries shown
+  </Accordion>
+</AccordionGroup>
+
+### Focus Mode
+
+Isolate specific tables:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Focus Mode: messages table                     │
+├─────────────────────────────────────────────────┤
+│                                                  │
+│      users ━━━→ messages ━━━→ reactions        │
+│                    ↓                             │
+│                 threads                          │
+│                                                  │
+│  Showing: 1 table + 3 direct relationships      │
+└─────────────────────────────────────────────────┘
+```
+
+<Tip>
+  Double-click any table to enter focus mode and see only its immediate relationships.
+</Tip>
+
+## Analysis Features
+
+### Schema Health
+
+Visual indicators for schema quality:
+
+<CardGroup cols={2}>
+  <Card title="Missing Indexes" icon="triangle-exclamation">
+    ⚠️ Yellow highlight for tables without indexes
+  </Card>
+  <Card title="Orphan Tables" icon="unlink">
+    🔴 Red outline for tables with no relationships
+  </Card>
+  <Card title="Circular References" icon="rotate">
+    🟣 Purple lines for circular dependencies
+  </Card>
+  <Card title="Large Tables" icon="database">
+    📊 Size indicator for tables with many documents
+  </Card>
+</CardGroup>
+
+### Relationship Patterns
+
+Identify common database patterns:
+
+- **One-to-many**: Single parent, multiple children
+- **Many-to-many**: Junction tables connecting entities
+- **Hierarchical**: Parent-child trees
+- **Hub-and-spoke**: Central table with many references
+
+## Navigation Workflows
+
+### Exploring a New Codebase
+
+<Steps>
+  <Step title="Open visualizer">
+    View complete schema at a glance
+  </Step>
+  <Step title="Choose layout">
+    Try different layouts to understand structure
+  </Step>
+  <Step title="Identify core tables">
+    Find most-connected tables (usually core entities)
+  </Step>
+  <Step title="Trace relationships">
+    Follow arrows to understand data flow
+  </Step>
+  <Step title="Jump to data">
+    Click table names to view data in Data Browser
+  </Step>
+</Steps>
+
+### Planning Schema Changes
+
+<Steps>
+  <Step title="Export current schema">
+    Save PNG/SVG of current state
+  </Step>
+  <Step title="Identify dependencies">
+    Find all tables that reference the one you'll change
+  </Step>
+  <Step title="Plan migration">
+    Understand which relationships need updating
+  </Step>
+  <Step title="Use diff view">
+    After changes, compare before/after
+  </Step>
+</Steps>
+
+### Documentation
+
+<Steps>
+  <Step title="Generate diagram">
+    Arrange tables in logical groups
+  </Step>
+  <Step title="Add focus views">
+    Create separate diagrams for different areas
+  </Step>
+  <Step title="Export images">
+    Download PNG/SVG for each view
+  </Step>
+  <Step title="Include in docs">
+    Add to README, wiki, or architecture docs
+  </Step>
+</Steps>
+
+## Integration Features
+
+### Quick Actions
+
+From any table in the diagram:
+
+<CardGroup cols={2}>
+  <Card title="View Data" icon="database">
+    Jump to Data Browser for this table
+  </Card>
+  <Card title="View Schema" icon="file-code">
+    Open schema definition in detail panel
+  </Card>
+  <Card title="View Indexes" icon="list">
+    See all indexes on the table
+  </Card>
+  <Card title="Run Query" icon="play">
+    Open Function Runner with table pre-selected
+  </Card>
+</CardGroup>
+
+### Context Menu
+
+Right-click any table for:
+
+- Copy table name
+- Copy field names
+- Export this table only
+- Show in code
+- View related functions
+- Check performance metrics
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Document with diagrams">
+    Export schema diagrams for your README:
+    ```markdown
+    ## Database Schema
+    
+    ![Schema Diagram](./docs/schema.png)
+    
+    Our database follows a hub-and-spoke pattern with
+    `users` at the center...
+    ```
+  </Accordion>
+  
+  <Accordion title="Review before deploying">
+    Check the visualizer before schema changes to understand impact
+  </Accordion>
+  
+  <Accordion title="Use git diff mode">
+    Enable git integration to track schema evolution over time
+  </Accordion>
+  
+  <Accordion title="Share with team">
+    Export and share diagrams during planning meetings
+  </Accordion>
+  
+  <Accordion title="Identify patterns">
+    Look for:
+    - Tables with many relationships (potential bottlenecks)
+    - Orphan tables (possible cleanup candidates)
+    - Missing indexes on frequently-queried fields
+    - Circular dependencies (potential design issues)
+  </Accordion>
+</AccordionGroup>
+
+## Keyboard Shortcuts
+
+<CardGroup cols={2}>
+  <Card title="Fit View" icon="expand">
+    Press F to fit entire schema in viewport
+  </Card>
+  <Card title="Reset Layout" icon="arrows-rotate">
+    Press R to re-run layout algorithm
+  </Card>
+  <Card title="Search" icon="search">
+    Press / to focus table search
+  </Card>
+  <Card title="Export" icon="download">
+    Press E to open export menu
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Diagram not loading">
+    - Check that tables exist in deployment
+    - Verify schema is defined in convex/schema.ts
+    - Try refreshing the page
+    - Check browser console for errors
+  </Accordion>
+  
+  <Accordion title="Layout looks messy">
+    - Try a different layout algorithm
+    - Manually arrange key tables, then re-run layout
+    - Use focus mode to view subsets
+    - Zoom in to see detail
+  </Accordion>
+  
+  <Accordion title="Relationships not showing">
+    - Ensure you're using `Id<"tableName">` types
+    - Check that schema includes relationship fields
+    - Try toggling "Show inferred relationships"
+    - Verify field types are properly defined
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Explore table data and relationships
+  </Card>
+  <Card title="Performance Advisor" icon="gauge" href="/features/performance-advisor">
+    Get schema optimization suggestions
+  </Card>
+  <Card title="Function Runner" icon="code" href="/features/function-runner">
+    Test queries against your schema
+  </Card>
+  <Card title="Schema Design Guide" icon="book" href="/features/schema-visualizer">
+    Learn database design best practices
+  </Card>
+</CardGroup>

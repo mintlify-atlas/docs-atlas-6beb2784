@@ -1,0 +1,255 @@
+---
+title: Installation
+description: Install Convex Panel across Desktop, NPM, Mobile, and Raycast platforms
+---
+
+Convex Panel is available across multiple platforms to fit your workflow. Choose the installation method that works best for you.
+
+## Desktop App
+
+The desktop app provides a standalone application for macOS, Windows, and Linux.
+
+### macOS
+
+<Tabs>
+  <Tab title="Homebrew">
+    ```bash
+    brew install robertalv/tap/convex-panel
+    ```
+  </Tab>
+  
+  <Tab title="curl">
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/robertalv/convex-panel/main/install.sh | bash
+    ```
+  </Tab>
+  
+  <Tab title="Manual Download">
+    Download the latest `.dmg` file from [GitHub Releases](https://github.com/robertalv/convex-panel/releases).
+    
+    Available for both Apple Silicon and Intel Macs.
+  </Tab>
+</Tabs>
+
+### Windows
+
+<Tabs>
+  <Tab title="PowerShell">
+    ```powershell
+    irm https://raw.githubusercontent.com/robertalv/convex-panel/main/install.ps1 | iex
+    ```
+  </Tab>
+  
+  <Tab title="Manual Download">
+    Download the latest installer from [GitHub Releases](https://github.com/robertalv/convex-panel/releases):
+    - `.msi` installer (recommended)
+    - `.exe` installer (alternative)
+  </Tab>
+</Tabs>
+
+### Linux
+
+Download from [GitHub Releases](https://github.com/robertalv/convex-panel/releases):
+
+- **AppImage**: Universal Linux application (no installation required)
+- **deb**: For Debian/Ubuntu-based distributions
+
+```bash
+# For .deb packages
+sudo dpkg -i convex-panel_*.deb
+
+# For AppImage
+chmod +x Convex-Panel-*.AppImage
+./Convex-Panel-*.AppImage
+```
+
+## NPM Package
+
+Embed Convex Panel directly in your React application for development.
+
+<Steps>
+  <Step title="Install the package">
+    <CodeGroup>
+      ```bash npm
+      npm install convex-panel --save-dev
+      ```
+      
+      ```bash yarn
+      yarn add convex-panel --dev
+      ```
+      
+      ```bash pnpm
+      pnpm add convex-panel --save-dev
+      ```
+      
+      ```bash bun
+      bun add convex-panel --dev
+      ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Run the setup wizard">
+    ```bash
+    npx convex-panel setup
+    ```
+    
+    This interactive command will:
+    - Create or update `convex/http.ts` with OAuth endpoints
+    - Guide you through configuring environment variables
+    - Set up OAuth authentication for your project
+  </Step>
+  
+  <Step title="Add to your application">
+    See the [Quickstart](/quickstart) guide for framework-specific integration instructions.
+  </Step>
+</Steps>
+
+<Note>
+  The NPM package requires Node.js 18+ and React 18+. See [Requirements](#requirements) for full details.
+</Note>
+
+## Mobile App
+
+Monitor your Convex applications on the go with native mobile apps.
+
+<CardGroup cols={2}>
+  <Card title="iOS" icon="apple" href="#">
+    Coming soon to the App Store
+    
+    **Requires:** iOS 15+
+  </Card>
+  
+  <Card title="Android" icon="android" href="#">
+    Coming soon to the Play Store
+    
+    **Requires:** Android 10+
+  </Card>
+</CardGroup>
+
+### Mobile Features
+
+- **OAuth Device Flow**: Secure authentication without typing passwords
+- **Deployment Switching**: Quickly switch between dev, staging, and production
+- **Data Browser**: Browse tables and documents on mobile
+- **Log Viewer**: Monitor logs and errors in real-time
+- **Push Notifications**: Get alerted when errors occur
+
+## Raycast Extension
+
+Access Convex Panel directly from your macOS launcher.
+
+### Installation
+
+Install from the [Raycast Store](https://raycast.com/convexpanel/convex-panel)
+
+### Available Commands
+
+| Command | Description |
+|---------|-------------|
+| Manage Projects | Switch between Convex projects |
+| Switch Deployment | Toggle between dev/staging/prod |
+| Run Function | Execute Convex functions directly |
+| Data Browser | Quick access to table data |
+| View Logs | Stream logs in Raycast |
+| Search Docs | Search Convex documentation |
+| Browse Components | Explore the component registry |
+| Open Dashboard | Jump to Convex dashboard |
+| Copy Deployment URL | Copy your deployment URL |
+| Configure Deploy Key | Set up deploy key authentication |
+
+<Note>
+  The Raycast extension requires macOS 10.15+ and Raycast 1.50+
+</Note>
+
+## Requirements
+
+### Desktop App
+
+| Platform | Requirements |
+|----------|-------------|
+| macOS | macOS 10.15 (Catalina) or later |
+| Windows | Windows 10 or later |
+| Linux | Ubuntu 20.04+ or equivalent |
+
+### NPM Package
+
+| Dependency | Version |
+|------------|--------|
+| Node.js | 18+ |
+| React | 18+ |
+| Convex | 0.9.0+ |
+
+**Peer Dependencies:**
+- `react` ≥ 16.8.0
+- `react-dom` ≥ 16.8.0
+- `convex` ≥ 0.9.0
+- `classnames` ^2.5.1
+- `date-fns` ^4.1.0
+- `lucide-react` ^0.479.0
+- `react-window` ^1.8.11
+- `sonner` ^2.0.7
+- `framer-motion` ^12.5.0 (optional)
+
+### Mobile App
+
+| Platform | Requirements |
+|----------|-------------|
+| iOS | iOS 15 or later |
+| Android | Android 10 or later |
+
+### Convex
+
+All platforms require:
+- Active Convex project with API access
+- Convex deployment URL
+
+## Verification
+
+### Desktop App
+
+After installation, verify by opening the app:
+
+```bash
+# macOS
+open "/Applications/Convex Panel.app"
+
+# Windows (PowerShell)
+Start-Process "Convex Panel"
+
+# Linux (if installed via deb)
+convex-panel
+```
+
+### NPM Package
+
+Verify the installation:
+
+```bash
+npm list convex-panel
+```
+
+Check that the CLI is available:
+
+```bash
+npx convex-panel --version
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get started with the NPM package in your React app
+  </Card>
+  
+  <Card title="Desktop Features" icon="desktop" href="/platforms/desktop">
+    Explore desktop app capabilities
+  </Card>
+  
+  <Card title="Authentication" icon="lock" href="/configuration/authentication">
+    Set up OAuth and access tokens
+  </Card>
+  
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Configure Convex Panel for your needs
+  </Card>
+</CardGroup>

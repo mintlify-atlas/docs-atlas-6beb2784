@@ -1,0 +1,219 @@
+---
+title: ConvexPanel
+description: Main component for embedding Convex Panel in your application
+---
+
+The `ConvexPanel` component is the primary interface for integrating Convex Panel into your React application. It provides a comprehensive developer tools panel with tabs for Health, Data, Logs, Functions, and Files.
+
+## Import
+
+```tsx
+import { ConvexPanel } from 'convex-panel';
+// or with Shadow DOM isolation (recommended)
+import ConvexPanelShadow from 'convex-panel';
+```
+
+## Basic Usage
+
+```tsx
+import { ConvexPanel } from 'convex-panel';
+
+function App() {
+  return (
+    <div>
+      <YourApp />
+      <ConvexPanel />
+    </div>
+  );
+}
+```
+
+## With OAuth Configuration
+
+```tsx
+import { ConvexPanel } from 'convex-panel';
+
+function App() {
+  return (
+    <ConvexPanel
+      oauthConfig={{
+        clientId: 'your-client-id',
+        redirectUri: 'http://localhost:3000',
+        scope: 'project',
+      }}
+    />
+  );
+}
+```
+
+## Props
+
+<ParamField path="convex" type="ConvexReactClient">
+  Optional Convex client instance. If not provided, the component will attempt to use the client from React context via `useConvex()`.
+</ParamField>
+
+<ParamField path="accessToken" type="string">
+  Access token for authenticating with Convex API. Can be a project-scoped or team-scoped token.
+</ParamField>
+
+<ParamField path="teamAccessToken" type="string">
+  Team-level access token for accessing team resources.
+</ParamField>
+
+<ParamField path="deployUrl" type="string">
+  Convex deployment URL (e.g., `https://your-deployment.convex.cloud`). If not provided, will attempt to detect from the Convex client or environment variables.
+</ParamField>
+
+<ParamField path="deployKey" type="string">
+  Deploy key for admin access to your deployment.
+</ParamField>
+
+<ParamField path="oauthConfig" type="object">
+  OAuth configuration for authenticating with Convex.
+  
+  <Expandable title="properties">
+    <ParamField path="clientId" type="string" required>
+      OAuth client ID from your Convex dashboard.
+    </ParamField>
+    
+    <ParamField path="redirectUri" type="string" required>
+      Redirect URI configured in your OAuth app.
+    </ParamField>
+    
+    <ParamField path="scope" type="'team' | 'project'">
+      OAuth scope. Use `'project'` for project-level access or `'team'` for team-level access. Default is `'project'`.
+    </ParamField>
+    
+    <ParamField path="tokenExchangeUrl" type="string">
+      Custom token exchange endpoint URL.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField path="auth" type="UseOAuthReturn">
+  Optional custom authentication implementation. If provided, internal OAuth logic is skipped. This allows you to manage authentication externally.
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Enable mock data mode for testing without a real Convex deployment.
+</ParamField>
+
+<ParamField path="mockup" type="boolean" default="false">
+  Display panel in mockup mode, showing UI without requiring authentication.
+</ParamField>
+
+<ParamField path="forceDisplay" type="boolean" default="false">
+  Force display the panel even if not in development mode. Useful for testing in production-like environments.
+</ParamField>
+
+<ParamField path="fullscreen" type="boolean" default="false">
+  Display the panel in fullscreen mode, filling the entire viewport. Useful for desktop applications.
+</ParamField>
+
+<ParamField path="headerVisible" type="boolean" default="true">
+  Whether to show the panel header. Set to `false` to hide the default header (useful for desktop apps with custom headers).
+</ParamField>
+
+<ParamField path="customHeader" type="React.ReactNode">
+  Optional custom header component to render instead of the default header.
+</ParamField>
+
+<ParamField path="teamSlug" type="string">
+  Team slug for accessing team-specific resources.
+</ParamField>
+
+<ParamField path="projectSlug" type="string">
+  Project slug for accessing project-specific resources.
+</ParamField>
+
+<ParamField path="team" type="Team">
+  Team object containing team information.
+</ParamField>
+
+<ParamField path="project" type="Project">
+  Project object containing project information.
+</ParamField>
+
+<ParamField path="defaultTheme" type="'dark' | 'light'" default="'dark'">
+  Initial theme for the panel. User's preference is persisted in localStorage.
+</ParamField>
+
+<ParamField path="portalContainer" type="HTMLElement">
+  Optional portal container for overlays rendered from within the panel.
+</ParamField>
+
+## Shadow DOM Isolation
+
+For complete style isolation, use `ConvexPanelShadow` (the default export):
+
+```tsx
+import ConvexPanelShadow from 'convex-panel';
+
+function App() {
+  return (
+    <div>
+      <YourApp />
+      <ConvexPanelShadow />
+    </div>
+  );
+}
+```
+
+The Shadow DOM wrapper provides:
+- Complete CSS isolation (parent styles don't affect the panel)
+- No style leakage (panel styles don't affect your app)
+- Automatic style injection into shadow root
+
+## Environment Variables
+
+The panel automatically detects these environment variables:
+
+- `NEXT_PUBLIC_CONVEX_URL` or `VITE_CONVEX_URL` - Deployment URL
+- `CONVEX_DEPLOY_KEY` - Deploy key for admin access
+- OAuth configuration from environment (if supported by your framework)
+
+## Development Mode
+
+By default, the panel only renders in development mode (`NODE_ENV === 'development'`). To display in production, use the `forceDisplay` prop:
+
+```tsx
+<ConvexPanel forceDisplay />
+```
+
+## Examples
+
+### Desktop App Integration
+
+```tsx
+<ConvexPanel
+  fullscreen
+  headerVisible={false}
+  customHeader={<YourCustomHeader />}
+  accessToken={token}
+  deployUrl={url}
+/>
+```
+
+### With Custom Authentication
+
+```tsx
+const customAuth = {
+  isAuthenticated: true,
+  token: { access_token: 'your-token' },
+  isLoading: false,
+  error: null,
+};
+
+<ConvexPanel auth={customAuth} />;
+```
+
+## Related Components
+
+<CardGroup cols={2}>
+  <Card title="AuthPanel" icon="lock" href="/api/components/auth-panel">
+    Authentication interface for connecting to Convex
+  </Card>
+  <Card title="View Components" icon="eye" href="/api/components/views">
+    Individual view components (Health, Data, Logs, etc.)
+  </Card>
+</CardGroup>

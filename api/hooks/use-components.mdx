@@ -1,0 +1,389 @@
+---
+title: "useComponents"
+description: "React hook for fetching and managing Convex components"
+---
+
+## Overview
+
+The `useComponents` hook fetches component information from a Convex deployment and manages component selection state. Components are Convex's way of organizing backend code into isolated modules.
+
+## Signature
+
+```typescript
+function useComponents(props: UseComponentsProps): UseComponentsReturn
+```
+
+## Parameters
+
+<ParamField path="adminClient" type="any" required>
+  The Convex admin client instance used to fetch component data. This is the authenticated client that communicates with the Convex API.
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default={false}>
+  Whether to use mock data instead of fetching from the API. Useful for testing and development.
+</ParamField>
+
+## Return Value
+
+<ResponseField name="components" type="any[]">
+  Array of component objects fetched from the deployment. Each component contains metadata about a Convex component.
+</ResponseField>
+
+<ResponseField name="isLoadingComponents" type="boolean">
+  Whether components are currently being fetched from the API.
+</ResponseField>
+
+<ResponseField name="componentNames" type="string[]">
+  Array of component names, including `'app'` as the default component. Useful for rendering component selectors.
+</ResponseField>
+
+<ResponseField name="componentNameToId" type="Map<string, string>">
+  Map from component name to component ID for quick lookups.
+</ResponseField>
+
+<ResponseField name="selectedComponentId" type="string | null">
+  The ID of the currently selected component, or `null` if the app component is selected.
+</ResponseField>
+
+<ResponseField name="selectedComponent" type="string | null">
+  The name of the currently selected component, or `null` if no component is selected.
+</ResponseField>
+
+<ResponseField name="setSelectedComponent" type="(component: string | null) => void">
+  Function to change the selected component.
+  
+  <ParamField path="component" type="string | null" required>
+    The component name to select, `'app'` for the main component, or `null` to clear selection.
+  </ParamField>
+</ResponseField>
+
+## Usage
+
+### Basic Component Selection
+
+```tsx
+import { useComponents } from 'convex-panel';
+
+function ComponentSelector({ adminClient }) {
+  const {
+    componentNames,
+    selectedComponent,
+    setSelectedComponent,
+    isLoadingComponents
+  } = useComponents({ adminClient });
+
+  if (isLoadingComponents) {
+    return <div>Loading components...</div>;
+  }
+
+  return (
+    <select 
+      value={selectedComponent || 'app'}
+      onChange={(e) => setSelectedComponent(e.target.value)}
+    >
+      {componentNames.map((name) => (
+        <option key={name} value={name}>
+          {name}
+        </option>
+      ))}
+    </select>
+  );
+}
+```
+
+### With Data View
+
+```tsx
+import { useComponents } from 'convex-panel';
+
+function DataView({ adminClient }) {
+  const {
+    componentNames,
+    selectedComponentId,
+    selectedComponent,
+    setSelectedComponent,
+  } = useComponents({
+    adminClient,
+    useMockData: false,
+  });
+
+  // Use selectedComponentId to filter data
+  const tableData = useTableData({
+    adminClient,
+    componentId: selectedComponentId, // null for 'app', or specific ID
+  });
+
+  return (
+    <div>
+      <ComponentSelector
+        names={componentNames}
+        selected={selectedComponent}
+        onChange={setSelectedComponent}
+      />
+      <DataTable data={tableData} />
+    </div>
+  );
+}
+```
+
+### Component Name to ID Mapping
+
+```tsx
+import { useComponents } from 'convex-panel';
+
+function ComponentManager({ adminClient }) {
+  const {
+    components,
+    componentNameToId,
+    selectedComponent
+  } = useComponents({ adminClient });
+
+  // Get ID for a specific component
+  const myComponentId = componentNameToId.get('myComponent');
+
+  // Get all component details
+  const componentDetails = components.find(
+    comp => comp.name === selectedComponent
+  );
+
+  return (
+    <div>
+      <p>Selected: {selectedComponent}</p>
+      <p>Component ID: {myComponentId}</p>
+      <pre>{JSON.stringify(componentDetails, null, 2)}</pre>
+    </div>
+  );
+}
+```
+
+### Mock Data Mode
+
+```tsx
+import { useComponents } from 'convex-panel';
+
+function MockComponentView() {
+  const {
+    componentNames,
+    selectedComponent,
+    setSelectedComponent
+  } = useComponents({
+    adminClient: null, // Not needed in mock mode
+    useMockData: true
+  });
+
+  // Returns empty components array when using mock data
+  // Useful for UI development without backend connection
+
+  return (
+    <div>
+      <h2>Components (Mock Mode)</h2>
+      {componentNames.map(name => (
+        <button
+          key={name}
+          onClick={() => setSelectedComponent(name)}
+          disabled={name === selectedComponent}
+        >
+          {name}
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+## Behavior Details
+
+### Default App Component
+
+The hook always includes `'app'` in `componentNames`:
+
+```typescript
+const { componentNames } = useComponents({ adminClient });
+// componentNames: ['app', 'component1', 'component2', ...]
+```
+
+### Component ID Resolution
+
+- When `selectedComponent` is `'app'` or `null`, `selectedComponentId` is `null`
+- For other components, `selectedComponentId` is the component's ID from the map
+
+```typescript
+const { selectedComponent, selectedComponentId } = useComponents({ adminClient });
+
+// When 'app' is selected:
+// selectedComponent: 'app'
+// selectedComponentId: null
+
+// When 'myComponent' is selected:
+// selectedComponent: 'myComponent'
+// selectedComponentId: 'cmp_...' (actual ID)
+```
+
+### Initial State
+
+By default, `'app'` is selected on mount:
+
+```typescript
+const { selectedComponent } = useComponents({ adminClient });
+// Initial value: 'app'
+```
+
+### Component Fetching
+
+Components are fetched when:
+1. The hook first mounts
+2. The `adminClient` changes
+3. The `useMockData` prop changes
+
+Fetching is skipped when:
+- `adminClient` is `null` or `undefined`
+- `useMockData` is `true`
+
+## Integration with Other Hooks
+
+The `useComponents` hook is commonly used with other data hooks:
+
+```tsx
+import { useComponents, useTableData } from 'convex-panel';
+
+function DataBrowser({ adminClient, convexUrl, accessToken }) {
+  // Get component selection
+  const {
+    componentNames,
+    selectedComponentId,
+    selectedComponent,
+    setSelectedComponent,
+  } = useComponents({ adminClient });
+
+  // Fetch tables for selected component
+  const tableData = useTableData({
+    convexUrl,
+    accessToken,
+    adminClient,
+    componentId: selectedComponentId, // Filter by component
+  });
+
+  return (
+    <div>
+      {/* Component selector */}
+      <select 
+        value={selectedComponent || 'app'}
+        onChange={(e) => setSelectedComponent(e.target.value)}
+      >
+        {componentNames.map((name) => (
+          <option key={name} value={name}>{name}</option>
+        ))}
+      </select>
+
+      {/* Tables for selected component */}
+      <TableList tables={tableData.tables} />
+    </div>
+  );
+}
+```
+
+## Type Definitions
+
+```typescript
+interface UseComponentsProps {
+  adminClient: any;
+  useMockData?: boolean;
+}
+
+interface UseComponentsReturn {
+  components: any[];
+  isLoadingComponents: boolean;
+  componentNames: string[];
+  componentNameToId: Map<string, string>;
+  selectedComponentId: string | null;
+  selectedComponent: string | null;
+  setSelectedComponent: (component: string | null) => void;
+}
+```
+
+## Error Handling
+
+The hook handles errors gracefully:
+
+```typescript
+useEffect(() => {
+  fetchComponents(adminClient, useMockData)
+    .then((comps) => {
+      setComponents(comps || []);
+    })
+    .catch((error) => {
+      console.error('Error fetching components:', error);
+      setComponents([]); // Falls back to empty array
+    })
+    .finally(() => {
+      setIsLoadingComponents(false);
+    });
+}, [adminClient, useMockData]);
+```
+
+When an error occurs:
+- `components` is set to an empty array `[]`
+- `componentNames` will only contain `['app']`
+- `isLoadingComponents` is set to `false`
+- Error is logged to console
+
+## Best Practices
+
+### Check Loading State
+
+```tsx
+const { isLoadingComponents, componentNames } = useComponents({ adminClient });
+
+if (isLoadingComponents) {
+  return <LoadingSpinner />;
+}
+
+return <ComponentList names={componentNames} />;
+```
+
+### Handle Empty Components
+
+```tsx
+const { components, componentNames } = useComponents({ adminClient });
+
+if (componentNames.length === 1) {
+  // Only 'app' component exists
+  return <div>No additional components found</div>;
+}
+
+return <ComponentGrid components={components} />;
+```
+
+### Sync with External State
+
+If you need to control component selection externally:
+
+```tsx
+function ControlledComponentView({ adminClient, initialComponent }) {
+  const {
+    componentNames,
+    selectedComponent,
+    setSelectedComponent,
+  } = useComponents({ adminClient });
+
+  // Sync with external state on mount
+  useEffect(() => {
+    if (initialComponent && componentNames.includes(initialComponent)) {
+      setSelectedComponent(initialComponent);
+    }
+  }, [initialComponent, componentNames]);
+
+  return <ComponentSelector /* ... */ />;
+}
+```
+
+## Related Hooks
+
+<CardGroup cols={2}>
+  <Card title="useTableData" icon="table" href="/api/components/views">
+    Fetch table data for a component
+  </Card>
+  <Card title="useFilters" icon="filter" href="/api/components/views">
+    Manage data filtering with components
+  </Card>
+</CardGroup>

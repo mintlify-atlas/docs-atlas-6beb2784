@@ -1,0 +1,392 @@
+---
+title: OAuth Setup
+description: Step-by-step guide to configure OAuth authentication for Convex Panel
+---
+
+OAuth setup requires configuring both your Convex deployment and your frontend application. This guide walks through the complete setup process.
+
+## Quick Setup
+
+The fastest way to set up OAuth is using the interactive setup command:
+
+```bash
+npx convex-panel setup
+```
+
+This command will:
+- Create or update `convex/http.ts` with OAuth endpoints
+- Prompt for required environment variables
+- Configure your project for OAuth authentication
+
+## Manual Setup
+
+If you prefer manual configuration, follow these steps:
+
+### Step 1: Create OAuth Application in Convex
+
+<Steps>
+  <Step title="Open Convex Dashboard">
+    Navigate to [Convex Dashboard](https://dashboard.convex.dev) and select your team
+  </Step>
+  
+  <Step title="Create OAuth Application">
+    Go to **Team Settings** → **OAuth Applications** → **Create Application**
+  </Step>
+  
+  <Step title="Configure Application">
+    - **Name**: "Convex Panel" (or your preferred name)
+    - **Redirect URIs**: Add your application URLs:
+      - `http://localhost:5173` (development)
+      - `http://localhost:3000` (Next.js development)
+      - Your production URL (e.g., `https://yourapp.com`)
+  </Step>
+  
+  <Step title="Save Credentials">
+    Copy the **Client ID** and **Client Secret** - you'll need these in the next steps
+  </Step>
+</Steps>
+
+### Step 2: Set Up Token Exchange Endpoint
+
+OAuth token exchange must happen server-side to protect your client secret. The setup script creates this endpoint automatically in `convex/http.ts`.
+
+<Note>
+  The token exchange endpoint is an HTTP action that runs in your Convex deployment, keeping your client secret secure on the backend.
+</Note>
+
+#### Create convex/http.ts
+
+If you ran `npx convex-panel setup`, this file was created automatically. Otherwise, create it manually:
+
+```typescript convex/http.ts
+import { httpRouter } from "convex/server";
+import { httpAction } from "./_generated/server";
+
+const http = httpRouter();
+
+/**
+ * OAuth code → token exchange endpoint for Convex Panel.
+ */
+export const exchangeOAuthCode = httpAction(async (ctx, request) => {
+  const origin = request.headers.get("Origin") ?? "*";
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    Vary: "Origin",
+  };
+
+  if (request.method !== "POST") {
+    return new Response("Method Not Allowed", {
+      status: 405,
+      headers: corsHeaders,
+    });
+  }
+
+  const body = await request.json();
+  const { code, codeVerifier, redirectUri } = body;
+
+  if (!code || typeof code !== "string") {
+    return new Response(
+      JSON.stringify({ error: "Missing or invalid 'code'" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+
+  const clientId =
+    process.env.CONVEX_CLIENT_ID ??
+    process.env.VITE_OAUTH_CLIENT_ID ??
+    process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID;
+
+  const clientSecret =
+    process.env.CONVEX_CLIENT_SECRET ??
+    process.env.OAUTH_CLIENT_SECRET;
+
+  if (!clientId || !clientSecret) {
+    return new Response(
+      JSON.stringify({
+        error:
+          "OAuth credentials not configured. Set CONVEX_CLIENT_ID and CONVEX_CLIENT_SECRET in Convex environment variables.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: "authorization_code",
+    redirect_uri: redirectUri ?? process.env.OAUTH_REDIRECT_URI ?? "",
+    code,
+    ...(codeVerifier ? { code_verifier: codeVerifier } : {}),
+  });
+
+  try {
+    const resp = await fetch("https://api.convex.dev/oauth/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+
+    const data = await resp.json();
+    return new Response(JSON.stringify(data), {
+      status: resp.status,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
+  } catch (err: any) {
+    return new Response(
+      JSON.stringify({ error: err?.message ?? "Token exchange failed" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
+});
+
+export const preflightOAuthExchange = httpAction(async (_ctx, request) => {
+  const origin = request.headers.get("Origin") ?? "*";
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": origin,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers":
+        request.headers.get("Access-Control-Request-Headers") ?? "*",
+      "Access-Control-Max-Age": "86400",
+      Vary: "Origin",
+    },
+  });
+});
+
+http.route({
+  path: "/oauth/exchange",
+  method: "POST",
+  handler: exchangeOAuthCode,
+});
+
+http.route({
+  path: "/oauth/exchange",
+  method: "OPTIONS",
+  handler: preflightOAuthExchange,
+});
+
+export default http;
+```
+
+<Note>
+  If you have an existing `convex/http.ts`, the setup script will append the OAuth routes without overwriting your existing code.
+</Note>
+
+### Step 3: Configure Environment Variables
+
+Set up environment variables in **two** places:
+
+#### A. Convex Deployment (Backend)
+
+Set these in your Convex Dashboard under **Settings** → **Environment Variables**:
+
+<Warning>
+  **CRITICAL**: `CONVEX_CLIENT_SECRET` must ONLY be set in Convex Dashboard, never in your frontend `.env` file.
+</Warning>
+
+```bash
+# In Convex Dashboard Environment Variables
+CONVEX_CLIENT_ID=your-oauth-client-id
+CONVEX_CLIENT_SECRET=your-oauth-client-secret
+OAUTH_REDIRECT_URI=http://localhost:5173  # Optional: your app's origin
+```
+
+#### B. Frontend Application
+
+Add these to your `.env` or `.env.local` file:
+
+<CodeGroup>
+```bash Vite
+# Your Convex deployment URL
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
+
+# OAuth client ID (same as in Convex Dashboard)
+VITE_OAUTH_CLIENT_ID=your-oauth-client-id
+
+# Token exchange endpoint (your Convex site URL + /oauth/exchange)
+VITE_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+```
+
+```bash Next.js
+# Your Convex deployment URL
+NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+
+# OAuth client ID (same as in Convex Dashboard)
+NEXT_PUBLIC_OAUTH_CLIENT_ID=your-oauth-client-id
+
+# Token exchange endpoint
+NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+```
+
+```bash Create React App
+# Your Convex deployment URL
+REACT_APP_CONVEX_URL=https://your-deployment.convex.cloud
+
+# OAuth client ID
+REACT_APP_OAUTH_CLIENT_ID=your-oauth-client-id
+
+# Token exchange endpoint
+REACT_APP_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+```
+</CodeGroup>
+
+### Step 4: Deploy Convex Functions
+
+Deploy your Convex functions to make the OAuth endpoint available:
+
+```bash
+npx convex deploy
+```
+
+Verify the endpoint is working:
+```bash
+curl https://your-deployment.convex.site/oauth/exchange
+# Should return: Method Not Allowed (expected for GET request)
+```
+
+### Step 5: Test OAuth Flow
+
+<Steps>
+  <Step title="Start Your Application">
+    ```bash
+    npm run dev
+    ```
+  </Step>
+  
+  <Step title="Open the Panel">
+    The Convex Panel should appear at the bottom of your screen
+  </Step>
+  
+  <Step title="Click Connect">
+    Click the "Connect" button in the authentication panel
+  </Step>
+  
+  <Step title="Authorize Access">
+    You'll be redirected to Convex Dashboard. Select your project and approve access
+  </Step>
+  
+  <Step title="Return to Your App">
+    After authorization, you'll be redirected back. The panel should now be connected
+  </Step>
+</Steps>
+
+## PKCE Support
+
+Convex Panel implements **PKCE (Proof Key for Code Exchange)** for enhanced security in OAuth flows.
+
+<Note>
+  PKCE protects against authorization code interception attacks by using a dynamically generated code verifier and challenge. This is automatically handled by the panel.
+</Note>
+
+### How PKCE Works
+
+1. Generate a random `code_verifier`
+2. Create SHA-256 hash as `code_challenge`
+3. Send `code_challenge` with authorization request
+4. Send `code_verifier` with token exchange
+5. Server verifies the hash matches
+
+Implementation from `src/utils/oauth.ts:76-99`:
+```typescript
+export async function generatePKCE(): Promise<{
+  codeVerifier: string;
+  codeChallenge: string;
+}> {
+  const codeVerifier = btoa(
+    String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))
+  )
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  const hash = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(codeVerifier)
+  );
+  
+  const codeChallenge = btoa(String.fromCharCode(...new Uint8Array(hash)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+
+  return { codeVerifier, codeChallenge };
+}
+```
+
+## Troubleshooting
+
+### Setup Script Issues
+
+<AccordionGroup>
+  <Accordion title="http.ts created in wrong location">
+    If the setup script creates `http.ts` in the wrong folder (e.g., `/convex` in your app root instead of your actual `convex/` directory), manually move the file to the correct location:
+    
+    ```bash
+    mv convex/http.ts ../convex/http.ts
+    ```
+  </Accordion>
+  
+  <Accordion title="Cannot find module 'convex/server'">
+    Ensure Convex is installed:
+    ```bash
+    npm install convex
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### OAuth Flow Issues
+
+<AccordionGroup>
+  <Accordion title="Redirect URI mismatch">
+    Ensure the redirect URI in your OAuth application settings exactly matches your app's origin:
+    - Include protocol (`http://` or `https://`)
+    - Match the port number
+    - No trailing slash
+  </Accordion>
+  
+  <Accordion title="Token exchange returns 500 error">
+    Check the error message:
+    - **"OAuth credentials not configured"**: Add `CONVEX_CLIENT_ID` and `CONVEX_CLIENT_SECRET` to Convex Dashboard environment variables
+    - **"Invalid grant"**: The authorization code may have expired or been used already
+    - **CORS error**: Check that your `http.ts` CORS headers allow your app's origin
+  </Accordion>
+  
+  <Accordion title="Double token exchange in React StrictMode">
+    The panel includes built-in protection against duplicate exchanges:
+    - Tracks in-flight exchanges
+    - Marks used authorization codes
+    - Returns cached tokens for duplicate calls
+    
+    This is implemented in `src/utils/oauth.ts:400-467`
+  </Accordion>
+</AccordionGroup>
+
+## Security Best Practices
+
+<Warning>
+  **Production Checklist**:
+  - ✅ Client secret is only in Convex Dashboard, never in frontend code
+  - ✅ Token exchange endpoint uses HTTPS in production
+  - ✅ CORS is restricted to your app's domains
+  - ✅ OAuth redirect URIs are explicitly listed in OAuth application settings
+  - ✅ PKCE is enabled (automatic in Convex Panel)
+</Warning>
+
+<Note>
+  For additional security, consider implementing:
+  - Token refresh mechanism for long-lived sessions
+  - Token expiration and automatic re-authentication
+  - Rate limiting on the token exchange endpoint
+</Note>

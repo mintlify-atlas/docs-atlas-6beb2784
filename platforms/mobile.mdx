@@ -1,0 +1,442 @@
+---
+title: "Mobile App"
+description: "Monitor Convex on the go with iOS and Android apps"
+---
+
+# Mobile App
+
+Take Convex monitoring on the go with native mobile apps for iOS and Android. Monitor deployments, view logs, browse data, and get push notifications for errors—all from your phone.
+
+![Mobile App Screenshot](https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2Fleft.png?alt=media&token=e797aa3d-b1b4-42c5-a80a-79a99e680b6c)
+
+## Platform Availability
+
+<CardGroup cols={2}>
+  <Card title="iOS" icon="apple">
+    **Coming Soon to the App Store**
+    
+    Minimum: iOS 15+
+    
+    Supports iPhone and iPad
+  </Card>
+  <Card title="Android" icon="android">
+    **Coming Soon to Google Play**
+    
+    Minimum: Android 10+
+    
+    Optimized for phones and tablets
+  </Card>
+</CardGroup>
+
+## Key Features
+
+### OAuth Device Flow Authentication
+
+Secure authentication without typing passwords on mobile.
+
+<Steps>
+  <Step title="Launch App">
+    Open the Convex Panel mobile app
+  </Step>
+  <Step title="Start Device Auth">
+    Tap "Connect with Device Code"
+  </Step>
+  <Step title="Authorize">
+    You'll see a verification code and be redirected to authorize in your browser
+  </Step>
+  <Step title="Complete">
+    Once authorized, return to the app—you're connected!
+  </Step>
+</Steps>
+
+```typescript
+// Device authorization flow implementation
+const deviceAuth = await authService.startDeviceAuthorization();
+
+// User sees: ABCD-1234
+const userCode = deviceAuth.user_code;
+
+// Open browser to verification URL
+await WebBrowser.openAuthSessionAsync(
+  deviceAuth.verification_uri_complete,
+  undefined,
+  { preferEphemeralSession: true }
+);
+
+// Poll for token
+const tokenResponse = await authService.pollForDeviceToken(deviceAuth);
+```
+
+<Note>
+  Device flow is perfect for mobile apps—no need to type complex passwords or tokens on a small screen.
+</Note>
+
+### Deployment Switching
+
+Quickly switch between development, staging, and production deployments.
+
+<Tabs>
+  <Tab title="Quick Switch">
+    Tap the deployment selector in the header to instantly switch contexts.
+  </Tab>
+  <Tab title="Recent Deployments">
+    Your most recently accessed deployments appear at the top for quick access.
+  </Tab>
+  <Tab title="Search">
+    Search across all your team's deployments by name or URL.
+  </Tab>
+</Tabs>
+
+### Data Browser
+
+Browse your Convex tables and documents on mobile with an optimized interface.
+
+<CardGroup cols={2}>
+  <Card title="Table View" icon="table">
+    Scrollable table with key columns for quick scanning
+  </Card>
+  <Card title="List View" icon="list">
+    Card-based list view optimized for mobile screens
+  </Card>
+  <Card title="Detail View" icon="magnifying-glass">
+    Full document viewer with syntax-highlighted JSON
+  </Card>
+  <Card title="Filtering" icon="filter">
+    Filter and sort documents directly on your phone
+  </Card>
+</CardGroup>
+
+```typescript
+// Mobile-optimized data fetching
+const { documents, isLoading } = useTableData({
+  tableName: selectedTable,
+  page: currentPage,
+  pageSize: 20, // Optimized for mobile scrolling
+  sortField: sortConfig.field,
+  sortOrder: sortConfig.order,
+});
+```
+
+### Log Viewer
+
+Monitor function execution logs in real-time from anywhere.
+
+<Steps>
+  <Step title="Live Streaming">
+    Logs stream in real-time as your functions execute
+  </Step>
+  <Step title="Filter by Type">
+    Filter by SUCCESS, FAILURE, DEBUG, WARNING, ERROR, or HTTP
+  </Step>
+  <Step title="Search">
+    Full-text search across all log messages
+  </Step>
+  <Step title="View Details">
+    Tap any log to see full details, arguments, and call trees
+  </Step>
+</Steps>
+
+```typescript
+// Real-time log streaming on mobile
+const { logs, isStreaming } = useLogStream({
+  deploymentUrl: selectedDeployment.url,
+  filters: {
+    type: ['ERROR', 'FAILURE'],
+    search: searchQuery,
+  },
+});
+```
+
+### Push Notifications
+
+Get alerted when critical events occur in your Convex deployment.
+
+<CardGroup cols={2}>
+  <Card title="Error Alerts" icon="bell">
+    Instant notifications when functions fail
+  </Card>
+  <Card title="Deployment Events" icon="rocket">
+    Get notified of new deployments and updates
+  </Card>
+  <Card title="Customizable" icon="sliders">
+    Choose which events trigger notifications
+  </Card>
+  <Card title="Do Not Disturb" icon="moon">
+    Set quiet hours to avoid disruptions
+  </Card>
+</CardGroup>
+
+<Note>
+  Push notifications require notification permissions. You'll be prompted when enabling alerts.
+</Note>
+
+## Technology Stack
+
+The mobile app is built with React Native and Expo:
+
+| Technology | Purpose |
+|-----------|--------|
+| **React Native** | Cross-platform mobile framework |
+| **Expo** | Development and build tooling |
+| **TypeScript** | Type safety |
+| **React Navigation** | Navigation and routing |
+| **React Query** | Data fetching and caching |
+| **Expo Notifications** | Push notifications |
+| **Expo SecureStore** | Secure credential storage |
+
+## App Configuration
+
+From `app.json`:
+
+```json
+{
+  "expo": {
+    "name": "Convex Panel",
+    "slug": "convex-panel-mobile",
+    "version": "1.0.0",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "dev.convex.panel",
+      "buildNumber": "3"
+    },
+    "android": {
+      "package": "dev.convex.panel",
+      "versionCode": 3,
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    }
+  }
+}
+```
+
+## Screens Overview
+
+### Main Navigation Tabs
+
+<Tabs>
+  <Tab title="Dashboard">
+    Overview of deployment health, metrics, and recent activity.
+  </Tab>
+  <Tab title="Data">
+    Browse and search your Convex tables and documents.
+  </Tab>
+  <Tab title="Logs">
+    Stream and filter function execution logs.
+  </Tab>
+  <Tab title="Account">
+    Manage deployments, teams, and app settings.
+  </Tab>
+</Tabs>
+
+### Dashboard Screen
+
+Monitor your deployment at a glance:
+
+- **Health Metrics**: Success rate, cache hit rate, latency
+- **Top Functions**: Most invoked functions with stats
+- **Top Errors**: Recent failures and error patterns
+- **Quick Actions**: Jump to logs, data, or functions
+
+### Data Browser Screen
+
+The mobile data browser includes:
+
+```typescript
+// Features available in data browser
+interface DataBrowserFeatures {
+  viewModes: ['table', 'list', 'detail'];
+  actions: ['view', 'edit', 'delete'];
+  filtering: boolean;
+  sorting: boolean;
+  search: boolean;
+  pagination: boolean;
+}
+```
+
+### Logs Screen
+
+Mobile-optimized log viewing:
+
+<CardGroup cols={2}>
+  <Card title="Log Cards" icon="rectangle-list">
+    Compact cards showing timestamp, function, and status
+  </Card>
+  <Card title="Status Badges" icon="badge-check">
+    Color-coded badges for quick status identification
+  </Card>
+  <Card title="Detail Sheet" icon="up-right-from-square">
+    Bottom sheet with full log details and call tree
+  </Card>
+  <Card title="JSON Highlighting" icon="code">
+    Syntax-highlighted JSON for arguments and results
+  </Card>
+</CardGroup>
+
+## Building from Source
+
+Want to build the mobile app yourself?
+
+<Steps>
+  <Step title="Clone Repository">
+    ```bash
+    git clone https://github.com/robertalv/convex-panel.git
+    cd convex-panel/apps/mobile
+    ```
+  </Step>
+  
+  <Step title="Install Dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  
+  <Step title="Start Development Server">
+    ```bash
+    npx expo start
+    ```
+  </Step>
+  
+  <Step title="Run on Device or Emulator">
+    - **iOS**: Press `i` to open in iOS Simulator
+    - **Android**: Press `a` to open in Android Emulator
+    - **Device**: Scan QR code with Expo Go app
+  </Step>
+</Steps>
+
+### Building Production Apps
+
+<Tabs>
+  <Tab title="iOS (EAS Build)">
+    ```bash
+    # Install EAS CLI
+    npm install -g eas-cli
+    
+    # Build for iOS
+    eas build --platform ios
+    ```
+  </Tab>
+  
+  <Tab title="Android (EAS Build)">
+    ```bash
+    # Install EAS CLI
+    npm install -g eas-cli
+    
+    # Build for Android
+    eas build --platform android
+    ```
+  </Tab>
+  
+  <Tab title="Local Builds">
+    ```bash
+    # iOS (requires macOS)
+    eas build --platform ios --local
+    
+    # Android
+    eas build --platform android --local
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+  Production builds require an Expo account and appropriate developer credentials (Apple Developer, Google Play Console).
+</Note>
+
+## Permissions
+
+The mobile app requests these permissions:
+
+| Permission | Purpose | Required? |
+|-----------|---------|----------|
+| **Notifications** | Push notifications for errors and events | Optional |
+| **Internet** | Connect to Convex API | Required |
+| **Vibrate** | Haptic feedback for notifications | Optional |
+
+## Privacy & Security
+
+<CardGroup cols={2}>
+  <Card title="Secure Storage" icon="lock">
+    Credentials stored in device keychain using Expo SecureStore
+  </Card>
+  <Card title="OAuth Flow" icon="shield-check">
+    Industry-standard OAuth 2.0 device flow authentication
+  </Card>
+  <Card title="No Tracking" icon="eye-slash">
+    No analytics or tracking—your data stays private
+  </Card>
+  <Card title="Local First" icon="mobile">
+    Data cached locally for offline viewing where possible
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Device auth not working">
+    - Ensure you have an active internet connection
+    - Try clearing the app cache in settings
+    - Verify your Convex OAuth settings allow device flow
+    - Check that you're using the latest app version
+  </Accordion>
+  
+  <Accordion title="Push notifications not received">
+    - Enable notifications in device Settings → Convex Panel
+    - Check notification settings within the app
+    - Verify notification permissions were granted
+    - Test notifications from the Account screen
+  </Accordion>
+  
+  <Accordion title="App crashes on launch">
+    - Try uninstalling and reinstalling the app
+    - Check for available app updates
+    - Report the issue with device info to GitHub issues
+  </Accordion>
+  
+  <Accordion title="Can't see my deployments">
+    - Verify you're authenticated (check Account screen)
+    - Ensure you have access to the team in Convex dashboard
+    - Try logging out and back in
+    - Pull down to refresh the deployment list
+  </Accordion>
+</AccordionGroup>
+
+## Roadmap
+
+Upcoming mobile features:
+
+<Steps>
+  <Step title="App Store Release">
+    Official iOS App Store and Google Play Store releases (coming soon)
+  </Step>
+  <Step title="Function Runner">
+    Execute queries and mutations directly from mobile
+  </Step>
+  <Step title="Schema Viewer">
+    View database schema and relationships
+  </Step>
+  <Step title="Offline Mode">
+    View cached data and logs when offline
+  </Step>
+  <Step title="Widget Support">
+    iOS widgets and Android home screen widgets for quick stats
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Desktop App" icon="desktop" href="/platforms/desktop">
+    Full-featured desktop application
+  </Card>
+  <Card title="Raycast Extension" icon="command" href="/platforms/raycast">
+    Quick access from your launcher
+  </Card>
+  <Card title="OAuth Setup" icon="lock" href="/configuration/authentication">
+    Learn about authentication flows
+  </Card>
+  <Card title="GitHub Repository" icon="github" href="https://github.com/robertalv/convex-panel">
+    View source code and contribute
+  </Card>
+</CardGroup>

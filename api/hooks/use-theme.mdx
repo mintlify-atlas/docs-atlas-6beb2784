@@ -1,0 +1,282 @@
+---
+title: "useTheme"
+description: "React hook for managing theme state in Convex Panel"
+---
+
+## Overview
+
+The `useTheme` hook provides access to the current theme (light or dark) and functions to toggle or set the theme. It must be used within a `ThemeProvider` component.
+
+## Signature
+
+```typescript
+function useTheme(): ThemeContextValue
+```
+
+## Return Value
+
+<ResponseField name="theme" type="'light' | 'dark'">
+  The current active theme.
+</ResponseField>
+
+<ResponseField name="toggleTheme" type="() => void">
+  Function to toggle between light and dark themes.
+</ResponseField>
+
+<ResponseField name="setTheme" type="(theme: Theme) => void">
+  Function to set a specific theme.
+  
+  <ParamField path="theme" type="'light' | 'dark'" required>
+    The theme to set.
+  </ParamField>
+</ResponseField>
+
+## Usage
+
+### Basic Theme Toggle
+
+```tsx
+import { useTheme } from 'convex-panel';
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button onClick={toggleTheme}>
+      Current theme: {theme}
+      Switch to {theme === 'dark' ? 'light' : 'dark'}
+    </button>
+  );
+}
+```
+
+### Set Specific Theme
+
+```tsx
+import { useTheme } from 'convex-panel';
+
+function ThemeSelector() {
+  const { theme, setTheme } = useTheme();
+
+  return (
+    <div>
+      <button 
+        onClick={() => setTheme('light')}
+        disabled={theme === 'light'}
+      >
+        Light Mode
+      </button>
+      <button 
+        onClick={() => setTheme('dark')}
+        disabled={theme === 'dark'}
+      >
+        Dark Mode
+      </button>
+    </div>
+  );
+}
+```
+
+### Conditional Styling
+
+```tsx
+import { useTheme } from 'convex-panel';
+
+function ThemedComponent() {
+  const { theme } = useTheme();
+
+  const styles = {
+    backgroundColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
+    color: theme === 'dark' ? '#ffffff' : '#000000'
+  };
+
+  return (
+    <div style={styles}>
+      Themed content
+    </div>
+  );
+}
+```
+
+## ThemeProvider
+
+The `ThemeProvider` component must wrap any components that use the `useTheme` hook.
+
+### Props
+
+<ParamField path="children" type="ReactNode" required>
+  Child components that will have access to theme context.
+</ParamField>
+
+<ParamField path="defaultTheme" type="'light' | 'dark'" default="'dark'">
+  The initial theme to use when no theme is stored.
+</ParamField>
+
+### Basic Setup
+
+```tsx
+import { ThemeProvider } from 'convex-panel';
+
+function App() {
+  return (
+    <ThemeProvider defaultTheme="dark">
+      <YourApp />
+    </ThemeProvider>
+  );
+}
+```
+
+### With ConvexPanel
+
+```tsx
+import { ThemeProvider, ConvexPanel } from 'convex-panel';
+
+function App() {
+  return (
+    <ThemeProvider>
+      <ConvexPanel
+        deploymentUrl="https://your-deployment.convex.cloud"
+        accessToken="your-token"
+      />
+    </ThemeProvider>
+  );
+}
+```
+
+## useThemeSafe
+
+The `useThemeSafe` hook is a safe variant that works outside of `ThemeProvider` by returning a default dark theme with no-op functions.
+
+```typescript
+function useThemeSafe(): ThemeContextValue
+```
+
+### Usage Without Provider
+
+```tsx
+import { useThemeSafe } from 'convex-panel';
+
+function StandaloneComponent() {
+  // Won't throw error even if used outside ThemeProvider
+  const { theme, toggleTheme, setTheme } = useThemeSafe();
+
+  // theme will be 'dark'
+  // toggleTheme and setTheme will be no-ops
+  return <div>Theme: {theme}</div>;
+}
+```
+
+## Persistence
+
+The theme selection is automatically persisted to browser storage:
+
+- **Storage**: `localStorage`
+- **Key**: `convex-panel-theme`
+- **Behavior**: Theme is restored on page reload
+
+### Storage Implementation
+
+```typescript
+// Theme is saved automatically when changed
+const { setTheme } = useTheme();
+setTheme('light'); // Automatically saves to localStorage
+
+// Theme is restored on mount
+// If no stored theme, uses defaultTheme from ThemeProvider
+```
+
+## Type Definitions
+
+```typescript
+type Theme = 'light' | 'dark';
+
+interface ThemeContextValue {
+  theme: Theme;
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+}
+
+interface ThemeProviderProps {
+  children: ReactNode;
+  defaultTheme?: Theme;
+}
+```
+
+## Best Practices
+
+### Always Use ThemeProvider
+
+```tsx
+// ✅ Good
+function App() {
+  return (
+    <ThemeProvider>
+      <ComponentUsingTheme />
+    </ThemeProvider>
+  );
+}
+
+// ❌ Bad - will throw error
+function App() {
+  return <ComponentUsingTheme />; // No ThemeProvider!
+}
+```
+
+### Use useThemeSafe for Optional Theming
+
+```tsx
+import { useThemeSafe } from 'convex-panel';
+
+function FlexibleComponent() {
+  // Safe to use with or without ThemeProvider
+  const { theme } = useThemeSafe();
+  
+  return <div data-theme={theme}>Content</div>;
+}
+```
+
+### System Theme Detection
+
+For system theme detection, set the initial theme based on user preference:
+
+```tsx
+import { ThemeProvider } from 'convex-panel';
+
+function App() {
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches 
+    ? 'dark' 
+    : 'light';
+
+  return (
+    <ThemeProvider defaultTheme={systemTheme}>
+      <YourApp />
+    </ThemeProvider>
+  );
+}
+```
+
+## Error Handling
+
+### Missing ThemeProvider
+
+If `useTheme` is called outside of `ThemeProvider`, it throws an error:
+
+```typescript
+// Throws: "useTheme must be used within a ThemeProvider"
+const { theme } = useTheme();
+```
+
+To avoid this error, either:
+1. Ensure all components are wrapped in `ThemeProvider`
+2. Use `useThemeSafe` instead for optional theme support
+
+## Related Components
+
+<CardGroup cols={2}>
+  <Card title="ThemeProvider" icon="palette" href="/api/hooks/use-theme">
+    Context provider for theme management
+  </Card>
+  <Card title="ConvexPanel" icon="table" href="/api/components/convex-panel">
+    Main panel component with built-in theme support
+  </Card>
+</CardGroup>

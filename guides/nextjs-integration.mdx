@@ -1,0 +1,313 @@
+---
+title: Next.js Integration
+description: Complete guide to integrating Convex Panel with Next.js applications
+---
+
+## Overview
+
+Convex Panel provides a Next.js-optimized wrapper with automatic server-side rendering (SSR) handling. This guide covers everything you need to integrate the panel into your Next.js application.
+
+## Installation
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    npm install convex-panel --save-dev
+    npm install convex classnames date-fns framer-motion lucide-react react-window sonner
+    ```
+  </Step>
+
+  <Step title="Run setup command">
+    ```bash
+    npx convex-panel setup
+    ```
+  </Step>
+
+  <Step title="Configure environment variables">
+    Create a `.env.local` file:
+
+    ```bash .env.local
+    NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+    NEXT_PUBLIC_OAUTH_CLIENT_ID=your-oauth-client-id
+    NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+    CONVEX_ACCESS_TOKEN=your-access-token
+    ```
+  </Step>
+
+  <Step title="Update Next.js configuration">
+    Add the access token to your `next.config.js`:
+
+    ```javascript next.config.js
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      reactStrictMode: true,
+      transpilePackages: ['convex-panel'],
+      env: {
+        NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
+        NEXT_PUBLIC_OAUTH_CLIENT_ID: process.env.NEXT_PUBLIC_OAUTH_CLIENT_ID,
+        NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL: process.env.NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL,
+        CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+      },
+      webpack: (config, { isServer }) => {
+        if (!isServer) {
+          config.module = config.module || {};
+          config.module.exprContextCritical = false;
+          config.ignoreWarnings = [
+            ...(config.ignoreWarnings || []),
+            {
+              module: /packages\/panel/,
+              message: /Critical dependency.*import\.meta/,
+            },
+          ];
+        }
+        return config;
+      },
+    };
+
+    module.exports = nextConfig;
+    ```
+  </Step>
+</Steps>
+
+## App Router Setup
+
+For Next.js 13+ with the App Router:
+
+### Create a Client Component Provider
+
+```tsx app/providers.tsx
+"use client";
+
+import React from "react";
+import { ConvexReactClient, ConvexProvider } from "convex/react";
+import ConvexPanel from "convex-panel/nextjs";
+
+const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
+
+if (!convexUrl) {
+  console.warn(
+    "NEXT_PUBLIC_CONVEX_URL is not set. Convex Panel will not be able to connect."
+  );
+}
+
+const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
+
+export function ConvexProviderWrapper({ 
+  children,
+}: { 
+  children: React.ReactNode;
+}) {
+  if (!convex) {
+    return <>{children}</>;
+  }
+
+  return (
+    <ConvexProvider client={convex}>
+      {children}
+      <ConvexPanel />
+    </ConvexProvider>
+  );
+}
+```
+
+### Use in Root Layout
+
+```tsx app/layout.tsx
+import { ConvexProviderWrapper } from "./providers";
+import "./globals.css";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <body>
+        <ConvexProviderWrapper>
+          {children}
+        </ConvexProviderWrapper>
+      </body>
+    </html>
+  );
+}
+```
+
+## Pages Router Setup
+
+For Next.js with the Pages Router:
+
+```tsx pages/_app.tsx
+import type { AppProps } from "next/app";
+import { ConvexReactClient, ConvexProvider } from "convex/react";
+import ConvexPanel from "convex-panel/nextjs";
+import "../styles/globals.css";
+
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+
+export default function App({ Component, pageProps }: AppProps) {
+  return (
+    <ConvexProvider client={convex}>
+      <Component {...pageProps} />
+      <ConvexPanel />
+    </ConvexProvider>
+  );
+}
+```
+
+## Why Use convex-panel/nextjs?
+
+The `/nextjs` import provides several benefits:
+
+<CardGroup cols={2}>
+  <Card title="Automatic SSR Handling" icon="server">
+    Prevents hydration mismatches by handling client-side rendering automatically
+  </Card>
+  <Card title="Built-in 'use client' Directive" icon="react">
+    No need to add 'use client' in your code - it's handled internally
+  </Card>
+  <Card title="Optimized Bundle" icon="gauge">
+    Tree-shaking and code-splitting optimized for Next.js
+  </Card>
+  <Card title="No SSR Overhead" icon="bolt">
+    Panel code only loads on the client, reducing server bundle size
+  </Card>
+</CardGroup>
+
+## Configuration Options
+
+### With Access Token
+
+```tsx
+<ConvexPanel accessToken={process.env.CONVEX_ACCESS_TOKEN} />
+```
+
+### With Custom Theme
+
+```tsx
+<ConvexPanel defaultTheme="light" />
+```
+
+### With Error Handling
+
+```tsx
+<ConvexPanel
+  onError={(error) => {
+    console.error("Panel error:", error);
+    // Send to error tracking service
+  }}
+/>
+```
+
+## Environment Variables Reference
+
+### Local Environment (`.env.local`)
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `NEXT_PUBLIC_CONVEX_URL` | Your Convex deployment URL | Yes |
+| `NEXT_PUBLIC_OAUTH_CLIENT_ID` | OAuth client ID from Convex dashboard | No |
+| `NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL` | Token exchange URL | No |
+| `CONVEX_ACCESS_TOKEN` | Access token for direct authentication | Recommended |
+
+### Convex Dashboard Environment Variables
+
+Set these in your Convex deployment settings:
+
+| Variable | Description |
+|----------|-------------|
+| `CONVEX_CLIENT_ID` | Same OAuth client ID as in `.env.local` |
+| `CONVEX_CLIENT_SECRET` | OAuth client secret (server-side only) |
+| `OAUTH_REDIRECT_URI` | Your frontend origin (e.g., `http://localhost:3000`) |
+
+<Note>
+**Important:** `CONVEX_CLIENT_SECRET` should never be in your `.env.local` file. It must only exist in your Convex deployment environment variables.
+</Note>
+
+## TypeScript Configuration
+
+If you encounter type errors, ensure your `tsconfig.json` includes:
+
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve"
+  }
+}
+```
+
+## Development vs Production
+
+### Development
+
+The panel automatically appears in development mode. You can control its visibility:
+
+```tsx
+{process.env.NODE_ENV === 'development' && <ConvexPanel />}
+```
+
+### Production
+
+For production builds, you have two options:
+
+<Tabs>
+  <Tab title="Install as Dev Dependency">
+    ```bash
+    npm install convex-panel --save-dev
+    ```
+    
+    This ensures the panel is not included in production bundles.
+  </Tab>
+  <Tab title="Conditional Rendering">
+    ```tsx
+    {process.env.NODE_ENV === 'development' && <ConvexPanel />}
+    ```
+    
+    Only render the panel in development mode.
+  </Tab>
+</Tabs>
+
+## Common Issues
+
+<Accordion title="Build warnings about 'use client'">
+  These warnings are expected for client components and won't affect functionality. The `/nextjs` import handles this automatically.
+</Accordion>
+
+<Accordion title="Hydration mismatches">
+  Make sure you're using `convex-panel/nextjs` instead of `convex-panel`. The Next.js-specific import prevents hydration issues.
+</Accordion>
+
+<Accordion title="Access token not working">
+  Verify that:
+  - `CONVEX_ACCESS_TOKEN` is in your `.env.local` file
+  - The token is exposed in `next.config.js` `env` config
+  - The token is a valid team-level access token from Convex dashboard
+</Accordion>
+
+<Accordion title="Panel not appearing">
+  Check that:
+  - The component is inside a `ConvexProvider`
+  - `NEXT_PUBLIC_CONVEX_URL` is set correctly
+  - There are no z-index conflicts with your app
+  - You're using the correct import: `convex-panel/nextjs`
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Detailed solutions for common issues
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/framework-integration">
+    Complete configuration reference
+  </Card>
+  <Card title="Views Overview" icon="grid" href="/introduction">
+    Learn about available panel views
+  </Card>
+  <Card title="OAuth Setup" icon="key" href="/configuration/authentication">
+    Configure OAuth authentication
+  </Card>
+</CardGroup>

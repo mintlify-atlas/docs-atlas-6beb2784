@@ -1,0 +1,395 @@
+---
+title: Vite Integration
+description: Optimize Convex Panel for Vite-based applications
+---
+
+## Overview
+
+Convex Panel provides first-class support for Vite with a dedicated plugin that optimizes the development experience and automatically removes the panel from production builds.
+
+## Installation
+
+<Steps>
+  <Step title="Install Convex Panel">
+    ```bash
+    npm install convex-panel --save-dev
+    ```
+  </Step>
+
+  <Step title="Install peer dependencies">
+    ```bash
+    npm install convex classnames date-fns framer-motion lucide-react react-window sonner
+    ```
+  </Step>
+
+  <Step title="Run setup command">
+    ```bash
+    npx convex-panel setup
+    ```
+  </Step>
+</Steps>
+
+## Vite Plugin Configuration
+
+The Convex Panel Vite plugin automatically removes the panel from production builds:
+
+```typescript vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { convexPanel } from 'convex-panel/vite';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    convexPanel(),
+  ],
+});
+```
+
+### Plugin Options
+
+The `convexPanel` plugin accepts the following configuration:
+
+```typescript
+export type ConvexPanelVitePluginConfig = {
+  /**
+   * Whether to remove ConvexPanel from production builds.
+   * @default true
+   */
+  removeOnBuild?: boolean;
+
+  /**
+   * Whether to log when ConvexPanel code is removed.
+   * @default false
+   */
+  logging?: boolean;
+};
+```
+
+### Example with Custom Options
+
+```typescript vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { convexPanel } from 'convex-panel/vite';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    convexPanel({
+      removeOnBuild: true,
+      logging: true,
+    }),
+  ],
+});
+```
+
+## Basic Integration
+
+### Standard React + Vite
+
+```tsx src/App.tsx
+import { ConvexReactClient, ConvexProvider } from "convex/react";
+import ConvexPanel from "convex-panel/react";
+
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+
+function App() {
+  return (
+    <ConvexProvider client={convex}>
+      {/* Your app content */}
+      <ConvexPanel />
+    </ConvexProvider>
+  );
+}
+
+export default App;
+```
+
+## Environment Variables
+
+Create a `.env` file in your project root:
+
+```bash .env
+VITE_CONVEX_URL=https://your-deployment.convex.cloud
+VITE_OAUTH_CLIENT_ID=your-oauth-client-id
+VITE_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+CONVEX_ACCESS_TOKEN=your-access-token
+```
+
+<Note>
+Vite only exposes environment variables prefixed with `VITE_` to your client code. Variables without this prefix (like `CONVEX_ACCESS_TOKEN`) need special handling.
+</Note>
+
+## Advanced Configurations
+
+### Tanstack Start
+
+For Tanstack Start applications:
+
+```typescript vite.config.ts
+import { defineConfig, loadEnv } from "vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { convexPanel } from "convex-panel/vite";
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const accessToken = env.CONVEX_ACCESS_TOKEN;
+
+  return {
+    plugins: [
+      tanstackStart(),
+      convexPanel(),
+    ],
+    define: {
+      // This replaces __CONVEX_ACCESS_TOKEN__ at build time
+      __CONVEX_ACCESS_TOKEN__: JSON.stringify(accessToken),
+    },
+  };
+});
+```
+
+Then use in your root component:
+
+```tsx app/root.tsx
+import { ConvexReactClient, ConvexProvider } from "convex/react";
+import { ConvexPanel } from "convex-panel/react";
+
+declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+
+function RootDocument() {
+  const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+  
+  return (
+    <ConvexProvider client={convex}>
+      {/* Your app content */}
+      {__CONVEX_ACCESS_TOKEN__ && (
+        <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+      )}
+    </ConvexProvider>
+  );
+}
+```
+
+### React Router
+
+For React Router applications:
+
+```typescript vite.config.ts
+import { reactRouter } from "@react-router/dev/vite";
+import { defineConfig, loadEnv } from "vite";
+import { convexPanel } from "convex-panel/vite";
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const accessToken = env.CONVEX_ACCESS_TOKEN;
+
+  return {
+    plugins: [
+      reactRouter(),
+      convexPanel(),
+    ],
+    define: {
+      __CONVEX_ACCESS_TOKEN__: JSON.stringify(accessToken),
+    },
+  };
+});
+```
+
+Usage in your root component:
+
+```tsx app/root.tsx
+import { ConvexReactClient, ConvexProvider } from "convex/react";
+import { ConvexPanel } from "convex-panel/react";
+
+declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+
+export default function App() {
+  const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+  
+  return (
+    <ConvexProvider client={convex}>
+      {/* Your app content */}
+      <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+    </ConvexProvider>
+  );
+}
+```
+
+## How the Plugin Works
+
+The Convex Panel Vite plugin automatically:
+
+<CardGroup cols={2}>
+  <Card title="Removes Imports" icon="trash">
+    Strips all `convex-panel` imports from production builds
+  </Card>
+  <Card title="Removes JSX" icon="code">
+    Removes `<ConvexPanel />` JSX elements from your code
+  </Card>
+  <Card title="Zero Bundle Impact" icon="gauge">
+    Ensures zero bundle size impact in production
+  </Card>
+  <Card title="Development Mode" icon="flask">
+    Keeps the panel fully functional in development
+  </Card>
+</CardGroup>
+
+### What Gets Removed
+
+In production builds, the plugin removes:
+
+<Tabs>
+  <Tab title="Import Statements">
+    ```tsx
+    // These are removed:
+    import ConvexPanel from "convex-panel";
+    import { ConvexPanel } from "convex-panel";
+    import ConvexPanel from "convex-panel/react";
+    import "convex-panel/styles.css";
+    ```
+  </Tab>
+  <Tab title="JSX Elements">
+    ```tsx
+    // These are removed:
+    <ConvexPanel />
+    <ConvexPanel accessToken={token} />
+    <ConvexPanel
+      defaultTheme="light"
+      onError={handleError}
+    />
+    ```
+  </Tab>
+  <Tab title="Comments">
+    ```tsx
+    // This is removed:
+    /* ConvexPanel configuration */
+    ```
+  </Tab>
+</Tabs>
+
+## TypeScript Configuration
+
+For TypeScript projects, add types for environment variables:
+
+```typescript src/vite-env.d.ts
+/// <reference types="vite/client" />
+
+interface ImportMetaEnv {
+  readonly VITE_CONVEX_URL: string;
+  readonly VITE_OAUTH_CLIENT_ID?: string;
+  readonly VITE_CONVEX_TOKEN_EXCHANGE_URL?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+For build-time defined variables:
+
+```typescript
+declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+```
+
+## Optimizing Development
+
+### Hot Module Replacement
+
+The panel supports Vite's HMR out of the box:
+
+```typescript vite.config.ts
+export default defineConfig({
+  plugins: [react(), convexPanel()],
+  server: {
+    port: 5173,
+    strictPort: true,
+    hmr: {
+      overlay: true,
+    },
+  },
+});
+```
+
+### Development Server Configuration
+
+```typescript vite.config.ts
+export default defineConfig({
+  plugins: [react(), convexPanel()],
+  server: {
+    port: 5173,
+    open: true,
+  },
+  optimizeDeps: {
+    include: [
+      'convex-panel',
+      '@monaco-editor/react',
+    ],
+  },
+});
+```
+
+## Build Optimization
+
+### Production Build
+
+```typescript vite.config.ts
+export default defineConfig({
+  plugins: [react(), convexPanel()],
+  build: {
+    target: 'esnext',
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'convex'],
+        },
+      },
+    },
+  },
+});
+```
+
+## Verification
+
+To verify the panel is removed from production builds:
+
+<Steps>
+  <Step title="Build your application">
+    ```bash
+    npm run build
+    ```
+  </Step>
+
+  <Step title="Preview the production build">
+    ```bash
+    npm run preview
+    ```
+  </Step>
+
+  <Step title="Check bundle size">
+    Look for the absence of `convex-panel` in the output:
+    
+    ```bash
+    # The panel should not appear in the bundle analysis
+    npx vite-bundle-visualizer
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="React Integration" icon="react" href="/guides/embedding-in-react">
+    Learn more about React integration patterns
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/guides/troubleshooting">
+    Common issues and solutions
+  </Card>
+  <Card title="Configuration" icon="gear" href="/configuration/framework-integration">
+    Complete configuration reference
+  </Card>
+  <Card title="Plugin API" icon="plug" href="/guides/vite-integration">
+    Vite plugin API documentation
+  </Card>
+</CardGroup>

@@ -1,0 +1,707 @@
+---
+title: "Data Structures"
+description: "Core TypeScript type definitions and data structures"
+---
+
+## Core Types
+
+### OAuthConfig
+
+OAuth authentication configuration.
+
+```typescript
+interface OAuthConfig {
+  clientId: string;
+  clientSecret?: string;
+  redirectUri: string;
+  scope?: 'team' | 'project';
+  tokenExchangeUrl?: string;
+}
+```
+
+<ResponseField name="clientId" type="string" required>
+  OAuth client ID.
+</ResponseField>
+
+<ResponseField name="clientSecret" type="string">
+  OAuth client secret (optional for public clients).
+</ResponseField>
+
+<ResponseField name="redirectUri" type="string" required>
+  OAuth redirect URI after authentication.
+</ResponseField>
+
+<ResponseField name="scope" type="'team' | 'project'">
+  OAuth scope - either 'team' or 'project' level access.
+</ResponseField>
+
+<ResponseField name="tokenExchangeUrl" type="string">
+  Custom URL for token exchange endpoint.
+</ResponseField>
+
+---
+
+### Team
+
+Team entity structure.
+
+```typescript
+interface Team {
+  id: number;
+  name: string;
+  slug: string;
+  referralCode?: string;
+}
+```
+
+<ResponseField name="id" type="number" required>
+  Unique team identifier.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the team.
+</ResponseField>
+
+<ResponseField name="slug" type="string" required>
+  URL-friendly team identifier.
+</ResponseField>
+
+<ResponseField name="referralCode" type="string">
+  Optional referral code for the team.
+</ResponseField>
+
+---
+
+### Project
+
+Project entity structure.
+
+```typescript
+interface Project {
+  id: number;
+  name: string;
+  slug: string;
+  teamId: number;
+}
+```
+
+<ResponseField name="id" type="number" required>
+  Unique project identifier.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the project.
+</ResponseField>
+
+<ResponseField name="slug" type="string" required>
+  URL-friendly project identifier.
+</ResponseField>
+
+<ResponseField name="teamId" type="number" required>
+  ID of the team that owns this project.
+</ResponseField>
+
+---
+
+### Deployment
+
+Deployment entity structure.
+
+```typescript
+interface Deployment {
+  id: number;
+  name: string;
+  deploymentType: "prod" | "dev" | "preview";
+  projectId: number;
+  kind?: "cloud" | "local";
+  creator?: number;
+  previewIdentifier?: string | null;
+  url?: string;
+}
+```
+
+<ResponseField name="id" type="number" required>
+  Unique deployment identifier.
+</ResponseField>
+
+<ResponseField name="name" type="string" required>
+  Display name of the deployment.
+</ResponseField>
+
+<ResponseField name="deploymentType" type="'prod' | 'dev' | 'preview'" required>
+  Type of deployment environment.
+</ResponseField>
+
+<ResponseField name="projectId" type="number" required>
+  ID of the project this deployment belongs to.
+</ResponseField>
+
+<ResponseField name="kind" type="'cloud' | 'local'">
+  Deployment infrastructure kind.
+</ResponseField>
+
+<ResponseField name="url" type="string">
+  URL to access the deployment.
+</ResponseField>
+
+---
+
+### User
+
+User entity structure.
+
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+  profilePictureUrl?: string;
+}
+```
+
+---
+
+## Log Types
+
+### LogEntry
+
+Structure for a log entry.
+
+```typescript
+interface LogEntry {
+  timestamp: number;
+  topic: string;
+  function?: {
+    type?: string;
+    path?: string;
+    cached?: boolean;
+    request_id?: string;
+  };
+  log_level?: string;
+  message?: string;
+  execution_time_ms?: number;
+  status?: string;
+  error_message?: string;
+  usage?: {
+    database_read_bytes?: number;
+    database_write_bytes?: number;
+    file_storage_read_bytes?: number;
+    file_storage_write_bytes?: number;
+    vector_storage_read_bytes?: number;
+    vector_storage_write_bytes?: number;
+    action_memory_used_mb?: number;
+  };
+  system_code?: string;
+  audit_log_action?: string;
+  audit_log_metadata?: string;
+  raw: any;
+}
+```
+
+<ResponseField name="timestamp" type="number" required>
+  Unix timestamp of the log entry.
+</ResponseField>
+
+<ResponseField name="topic" type="string" required>
+  Log topic/category.
+</ResponseField>
+
+<ResponseField name="function" type="object">
+  Information about the function that generated this log.
+  
+  <Expandable title="properties">
+    <ResponseField name="type" type="string">
+      Function type (query, mutation, action).
+    </ResponseField>
+    
+    <ResponseField name="path" type="string">
+      Function path/identifier.
+    </ResponseField>
+    
+    <ResponseField name="cached" type="boolean">
+      Whether the result was cached.
+    </ResponseField>
+    
+    <ResponseField name="request_id" type="string">
+      Request ID for correlation.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="execution_time_ms" type="number">
+  Function execution time in milliseconds.
+</ResponseField>
+
+<ResponseField name="usage" type="object">
+  Resource usage statistics.
+  
+  <Expandable title="properties">
+    <ResponseField name="database_read_bytes" type="number">
+      Bytes read from database.
+    </ResponseField>
+    
+    <ResponseField name="database_write_bytes" type="number">
+      Bytes written to database.
+    </ResponseField>
+    
+    <ResponseField name="file_storage_read_bytes" type="number">
+      Bytes read from file storage.
+    </ResponseField>
+    
+    <ResponseField name="file_storage_write_bytes" type="number">
+      Bytes written to file storage.
+    </ResponseField>
+    
+    <ResponseField name="action_memory_used_mb" type="number">
+      Memory used by action in MB.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+---
+
+## Table Types
+
+### TableField
+
+Schema field definition for a table.
+
+```typescript
+interface TableField {
+  fieldName: string;
+  optional: boolean;
+  shape: {
+    type: string;
+    fields?: TableField[];
+    tableName?: string;
+    value?: any;
+    float64Range?: {
+      hasSpecialValues: boolean;
+    };
+    shape?: {
+      type: string;
+      tableName?: string;
+      value?: any;
+      fields?: TableField[];
+    };
+  };
+}
+```
+
+### TableSchema
+
+Complete schema for a table.
+
+```typescript
+interface TableSchema {
+  type: string;
+  fields: TableField[];
+}
+```
+
+### TableDefinition
+
+Map of table names to their schemas.
+
+```typescript
+interface TableDefinition {
+  [key: string]: TableSchema;
+}
+```
+
+### TableDocument
+
+Document stored in a table.
+
+```typescript
+interface TableDocument {
+  _id: string;
+  [key: string]: any;
+  _initialEditMode?: boolean;
+}
+```
+
+<ResponseField name="_id" type="string" required>
+  Unique document identifier.
+</ResponseField>
+
+<ResponseField name="_initialEditMode" type="boolean">
+  Internal flag for edit mode state.
+</ResponseField>
+
+---
+
+## Filter Types
+
+### FilterClause
+
+Single filter condition.
+
+```typescript
+interface FilterClause {
+  field: string;
+  op: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'isType' | 'isNotType';
+  value: any;
+  enabled: boolean;
+}
+```
+
+<ResponseField name="field" type="string" required>
+  Field name to filter on.
+</ResponseField>
+
+<ResponseField name="op" type="FilterOperation" required>
+  Filter operation to apply.
+  
+  Options:
+  - `eq` - Equals
+  - `neq` - Not equals
+  - `gt` - Greater than
+  - `gte` - Greater than or equal
+  - `lt` - Less than
+  - `lte` - Less than or equal
+  - `isType` - Is of type
+  - `isNotType` - Is not of type
+</ResponseField>
+
+<ResponseField name="value" type="any" required>
+  Value to compare against.
+</ResponseField>
+
+<ResponseField name="enabled" type="boolean" required>
+  Whether this filter is currently active.
+</ResponseField>
+
+### FilterExpression
+
+Combination of multiple filter clauses.
+
+```typescript
+interface FilterExpression {
+  clauses: FilterClause[];
+}
+```
+
+### MenuPosition
+
+Position for dropdown menus.
+
+```typescript
+interface MenuPosition {
+  top: number;
+  left: number;
+}
+```
+
+---
+
+## Network Types
+
+### NetworkCall
+
+Recorded network request/response.
+
+```typescript
+interface NetworkCall {
+  id: string;
+  url: string;
+  method: string;
+  status: number;
+  statusText: string;
+  size: string;
+  time: number;
+  type: string;
+  initiator: string;
+  timestamp: number;
+  startTime: number;
+  endTime: number;
+  duration: number;
+  isError: boolean;
+  request: {
+    headers: Record<string, string>;
+    body?: string;
+  };
+  response: {
+    headers: Record<string, string>;
+    body?: any;
+  };
+}
+```
+
+---
+
+## Function Types
+
+### UdfType
+
+User-defined function types.
+
+```typescript
+type UdfType = 'query' | 'mutation' | 'action' | 'httpAction';
+type ExecutableUdfType = 'query' | 'mutation' | 'action';
+```
+
+### UdfVisibility
+
+Visibility of a function.
+
+```typescript
+type UdfVisibility = {
+  kind: 'public' | 'internal';
+};
+```
+
+### ModuleFunction
+
+Function metadata from a module.
+
+```typescript
+type ModuleFunction = {
+  name: string;
+  identifier: string;
+  udfType: UdfType;
+  visibility: Visibility;
+  file: {
+    name: string;
+    path: string;
+  };
+  sourceCode?: string;
+  args?: Record<string, any>;
+  returnType?: string;
+  componentId?: string | null;
+  componentPath?: string;
+};
+```
+
+### FunctionExecutionStats
+
+Execution statistics for a function.
+
+```typescript
+interface FunctionExecutionStats {
+  udf_type: string;
+  component_path: string;
+  identifier: string;
+  timestamp: number;
+  execution_time_ms: number;
+  success: boolean;
+  error?: string;
+  usage_stats: {
+    database_read_bytes: number;
+    database_write_bytes: number;
+    database_read_documents: number;
+    storage_read_bytes: number;
+    storage_write_bytes: number;
+    vector_index_read_bytes?: number;
+    vector_index_write_bytes?: number;
+    memory_used_mb: number;
+  };
+  identity_type: string;
+  request_id: string;
+  execution_id: string;
+  cachedResult?: boolean;
+}
+```
+
+---
+
+## Common Types
+
+### ThemeClasses
+
+CSS class overrides for theming.
+
+```typescript
+interface ThemeClasses {
+  container?: string;
+  header?: string;
+  toolbar?: string;
+  table?: string;
+  tableHeader?: string;
+  tableRow?: string;
+  text?: string;
+  button?: string;
+  input?: string;
+  successText?: string;
+  errorText?: string;
+  warningText?: string;
+}
+```
+
+### SortConfig
+
+Column sorting configuration.
+
+```typescript
+interface SortConfig {
+  field: string;
+  direction: SortDirection;
+}
+
+type SortDirection = "asc" | "desc";
+```
+
+### ButtonPosition
+
+Position options for floating buttons.
+
+```typescript
+type ButtonPosition =
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right"
+  | "right-center"
+  | "top-right";
+```
+
+### ConvexPanelSettings
+
+Panel configuration settings.
+
+```typescript
+interface ConvexPanelSettings {
+  showDebugFilters: boolean;
+  showStorageDebug: boolean;
+  logLevel: "debug" | "info" | "warn" | "error";
+  healthCheckInterval: number;
+  showRequestIdInput: boolean;
+  showLimitInput: boolean;
+  showSuccessCheckbox: boolean;
+}
+```
+
+### ProjectEnvVarConfig
+
+Environment variable configuration.
+
+```typescript
+type ProjectEnvVarConfig = {
+  name: string;
+  value: string;
+  deploymentTypes: ("dev" | "preview" | "prod")[];
+};
+```
+
+### FetchFn
+
+Custom fetch function type.
+
+```typescript
+type FetchFn = (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => Promise<Response>;
+```
+
+Custom fetch function type for environments that need to override native fetch (e.g., Tauri desktop apps that need CORS-free HTTP requests).
+
+---
+
+## Pagination Types
+
+### PaginationOptions
+
+```typescript
+interface PaginationOptions {
+  cursor: string | null;
+  numItems: number;
+  id?: number;
+}
+```
+
+### PageArgs
+
+```typescript
+interface PageArgs {
+  paginationOpts: PaginationOptions;
+  table: string;
+  filters: string | null;
+  componentId?: string | null;
+}
+```
+
+---
+
+## Time Series Types
+
+### TimeStamp
+
+```typescript
+interface TimeStamp {
+  secs_since_epoch: number;
+  nanos_since_epoch: number;
+}
+```
+
+### TimeSeriesData
+
+```typescript
+type TimeSeriesData = [TimeStamp, number | null][];
+```
+
+### APIResponse
+
+```typescript
+type APIResponse = [string, TimeSeriesData][];
+```
+
+---
+
+## File System Types
+
+### FileNode
+
+File tree node structure.
+
+```typescript
+type FileNode = {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: FileNode[];
+};
+```
+
+### FileOrFolder
+
+Union type for file system entries.
+
+```typescript
+interface File {
+  type: 'file';
+  name: string;
+  identifier: string;
+  functions: ModuleFunction[];
+}
+
+interface Folder {
+  type: 'folder';
+  name: string;
+  identifier: string;
+  children: FileOrFolder[];
+}
+
+type FileOrFolder = File | Folder;
+```
+
+---
+
+## Tab Types
+
+### TabId
+
+Available tab identifiers.
+
+```typescript
+type TabId =
+  | "health"
+  | "data"
+  | "functions"
+  | "files"
+  | "schedules"
+  | "logs"
+  | "components"
+  | "marketplace"
+  | "settings";
+```

@@ -1,0 +1,291 @@
+---
+title: "Desktop App"
+description: "Native desktop application for macOS, Windows, and Linux"
+---
+
+# Desktop App
+
+Convex Panel Desktop is a powerful native application built with Tauri and React that brings comprehensive Convex debugging and monitoring capabilities to your desktop.
+
+![Desktop App Screenshot](https://firebasestorage.googleapis.com/v0/b/relio-217bd.appspot.com/o/convex-panel%2FScreenshot%202026-01-20%20at%2011.23.22%E2%80%AFPM.png?alt=media&token=b34df713-4c3f-45a2-87ff-3f826aa44d3d)
+
+## Installation
+
+<Tabs>
+  <Tab title="macOS (Homebrew)">
+    ```bash
+    brew install robertalv/tap/convex-panel
+    ```
+  </Tab>
+  <Tab title="macOS (curl)">
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/robertalv/convex-panel/main/install.sh | bash
+    ```
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+    ```powershell
+    irm https://raw.githubusercontent.com/robertalv/convex-panel/main/install.ps1 | iex
+    ```
+  </Tab>
+  <Tab title="Manual Download">
+    Download the latest release from [GitHub Releases](https://github.com/robertalv/convex-panel/releases):
+    - **macOS**: `.dmg` (Apple Silicon & Intel)
+    - **Windows**: `.msi` or `.exe` installer
+    - **Linux**: `.AppImage` or `.deb`
+  </Tab>
+</Tabs>
+
+## System Requirements
+
+| Platform | Minimum Version |
+|----------|----------------|
+| macOS | 10.15+ |
+| Windows | 10+ |
+| Linux | Ubuntu 20.04+ |
+
+## Key Features
+
+### Data Browser
+
+Browse and manage your Convex database with a powerful data explorer.
+
+<CardGroup cols={2}>
+  <Card title="Multiple View Modes" icon="table">
+    Switch between table, list, JSON, and raw views for optimal data visualization
+  </Card>
+  <Card title="In-place Editing" icon="pen-to-square">
+    Edit documents directly with full CRUD operations
+  </Card>
+  <Card title="Advanced Filtering" icon="filter">
+    Powerful filtering, sorting, and search capabilities
+  </Card>
+  <Card title="Bulk Operations" icon="layer-group">
+    Perform bulk operations and export documents
+  </Card>
+</CardGroup>
+
+### Functions & Logs
+
+Debug and monitor your Convex functions in real-time.
+
+<Steps>
+  <Step title="Browse Functions">
+    View all your functions with execution statistics and performance charts
+  </Step>
+  <Step title="Inspect Code">
+    View function source code with Monaco Editor syntax highlighting
+  </Step>
+  <Step title="Stream Logs">
+    Watch live log streaming with automatic updates
+  </Step>
+  <Step title="Search History">
+    Search historical logs stored locally in SQLite
+  </Step>
+  <Step title="Trace Execution">
+    Follow function call trees to trace execution flow
+  </Step>
+</Steps>
+
+### Schema Visualizer
+
+Visualize your database schema with an interactive diagram powered by ReactFlow.
+
+<CardGroup cols={2}>
+  <Card title="Interactive Diagrams" icon="diagram-project">
+    Explore your schema with zoom, pan, and filter capabilities
+  </Card>
+  <Card title="Multiple Layouts" icon="grid">
+    Choose from force-directed, hierarchical, or radial layouts
+  </Card>
+  <Card title="Git Integration" icon="code-branch">
+    Visual diff mode to compare schema changes
+  </Card>
+  <Card title="Export" icon="download">
+    Export diagrams to PNG or SVG formats
+  </Card>
+</CardGroup>
+
+### Performance Advisor
+
+Get actionable insights to optimize your Convex application.
+
+```typescript
+// Example: Auto-fix index recommendations
+{
+  "table": "users",
+  "recommendation": "Add index on 'email' field",
+  "healthScore": 85,
+  "impact": "high"
+}
+```
+
+<Note>
+  The Performance Advisor provides a schema health score from 0-100 with detailed breakdowns and one-click auto-fix for many recommendations.
+</Note>
+
+### Health Metrics
+
+Monitor your application's health at a glance.
+
+<CardGroup cols={2}>
+  <Card title="Real-time Metrics" icon="chart-line">
+    Track failure rates, success metrics, and cache hit rates
+  </Card>
+  <Card title="Latency Monitoring" icon="clock">
+    Monitor latency with percentile breakdowns (p50, p95, p99)
+  </Card>
+  <Card title="Database Usage" icon="database">
+    Track database usage and storage metrics
+  </Card>
+  <Card title="Team Billing" icon="credit-card">
+    Overview of team billing and rate limits
+  </Card>
+</CardGroup>
+
+### File Storage
+
+Manage your Convex file storage with ease.
+
+- **Drag-and-drop upload**: Simply drag files into the window
+- **File previews**: View images and documents inline
+- **Bulk operations**: Delete multiple files at once
+- **Browse and search**: Find files quickly with filtering
+
+## Technology Stack
+
+The desktop app is built with modern web technologies:
+
+| Technology | Purpose |
+|-----------|--------|
+| **Tauri** | Native app framework (Rust + WebView) |
+| **React 19** | UI framework |
+| **TypeScript** | Type safety |
+| **Monaco Editor** | Code editor |
+| **ReactFlow** | Schema visualization |
+| **Tailwind CSS** | Styling |
+| **Radix UI** | UI components |
+
+## Configuration
+
+### OAuth Setup
+
+The desktop app uses OAuth for secure authentication:
+
+<Steps>
+  <Step title="Open Dashboard">
+    Go to your [Convex Dashboard](https://dashboard.convex.dev)
+  </Step>
+  <Step title="Create OAuth App">
+    Navigate to Settings → OAuth and create a new OAuth application
+  </Step>
+  <Step title="Configure Redirect URI">
+    Add `convex-panel://oauth/callback` as a redirect URI
+  </Step>
+  <Step title="Connect in App">
+    Launch the desktop app and click "Connect" to authenticate
+  </Step>
+</Steps>
+
+### Local Data Storage
+
+The desktop app stores data locally:
+
+- **Logs**: SQLite database for historical log search
+- **Preferences**: JSON files for user settings
+- **Cache**: Temporary cache for improved performance
+
+<Note>
+  All data is stored locally on your machine and never sent to external servers (except Convex API calls).
+</Note>
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd/Ctrl + K` | Open command palette |
+| `Cmd/Ctrl + F` | Search in current view |
+| `Cmd/Ctrl + R` | Refresh current view |
+| `Cmd/Ctrl + ,` | Open settings |
+| `Cmd/Ctrl + W` | Close current tab |
+
+## Building from Source
+
+Want to build the desktop app yourself?
+
+<Steps>
+  <Step title="Clone Repository">
+    ```bash
+    git clone https://github.com/robertalv/convex-panel.git
+    cd convex-panel
+    ```
+  </Step>
+  <Step title="Install Dependencies">
+    ```bash
+    pnpm install
+    ```
+  </Step>
+  <Step title="Build Desktop App">
+    ```bash
+    cd apps/desktop
+    pnpm tauri build
+    ```
+  </Step>
+  <Step title="Find Artifacts">
+    Artifacts will be in `apps/desktop/src-tauri/target/release/bundle/`:
+    - **macOS**: `macos/*.app`, `dmg/*.dmg`
+    - **Windows**: `msi/*.msi`, `nsis/*.exe`
+    - **Linux**: `appimage/*.AppImage`, `deb/*.deb`
+  </Step>
+</Steps>
+
+<Note>
+  Building requires Node.js 22+, pnpm 9+, and the Rust toolchain installed.
+</Note>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="App won't launch on macOS">
+    If you see "App is damaged and can't be opened":
+    
+    ```bash
+    xattr -cr /Applications/Convex\ Panel.app
+    ```
+    
+    This removes the quarantine attribute from unverified apps.
+  </Accordion>
+  
+  <Accordion title="Windows SmartScreen warning">
+    Click "More info" and then "Run anyway". This appears because the app isn't code-signed yet.
+  </Accordion>
+  
+  <Accordion title="Linux permission issues">
+    Make the AppImage executable:
+    
+    ```bash
+    chmod +x convex-panel.AppImage
+    ./convex-panel.AppImage
+    ```
+  </Accordion>
+  
+  <Accordion title="OAuth not working">
+    Ensure you've added `convex-panel://oauth/callback` as a redirect URI in your Convex OAuth settings.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="NPM Package" icon="npm" href="/platforms/npm-package">
+    Embed the panel in your React app
+  </Card>
+  <Card title="Mobile App" icon="mobile" href="/platforms/mobile">
+    Monitor Convex on the go
+  </Card>
+  <Card title="Raycast Extension" icon="command" href="/platforms/raycast">
+    Quick access from your launcher
+  </Card>
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Learn more about data browsing
+  </Card>
+</CardGroup>

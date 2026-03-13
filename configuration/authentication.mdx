@@ -1,0 +1,230 @@
+---
+title: Authentication
+description: Configure authentication for Convex Panel using OAuth or access tokens
+---
+
+Convex Panel supports two authentication methods: **OAuth 2.0** (recommended) and **Access Tokens** (direct authentication).
+
+## OAuth Authentication
+
+OAuth is the recommended authentication method as it provides secure, time-limited access without exposing long-lived credentials in your code.
+
+### How OAuth Works
+
+1. User clicks "Connect" in the panel
+2. Redirects to Convex Dashboard for authorization
+3. After approval, returns with an authorization code
+4. Code is exchanged for an access token via your backend
+5. Token is stored securely and used for API requests
+
+### OAuth Configuration
+
+Provide OAuth configuration to the ConvexPanel component:
+
+```tsx
+import ConvexPanel from "convex-panel/react";
+
+<ConvexPanel
+  oauthConfig={{
+    clientId: import.meta.env.VITE_OAUTH_CLIENT_ID,
+    redirectUri: window.location.origin,
+    scope: "project", // or "team"
+    tokenExchangeUrl: import.meta.env.VITE_CONVEX_TOKEN_EXCHANGE_URL,
+  }}
+/>
+```
+
+#### OAuth Config Options
+
+<ParamField path="clientId" type="string" required>
+  OAuth client ID from Convex Dashboard
+</ParamField>
+
+<ParamField path="redirectUri" type="string" required>
+  URL where users return after authorization. Typically `window.location.origin`
+</ParamField>
+
+<ParamField path="scope" type="'team' | 'project'" default="'project'">
+  Access scope:
+  - `project`: Access to a specific Convex project
+  - `team`: Access to all projects in a team
+</ParamField>
+
+<ParamField path="tokenExchangeUrl" type="string" required>
+  Backend endpoint that exchanges authorization codes for tokens. See [OAuth Setup](/configuration/oauth-setup) for implementation details.
+</ParamField>
+
+### Security Considerations
+
+<Warning>
+  **Never expose OAuth client secrets in your frontend code.** Token exchange must happen server-side to keep your client secret secure.
+</Warning>
+
+<Note>
+  OAuth tokens are stored in `localStorage` with the key `convex-panel:oauth-token`. They include optional expiration timestamps for automatic token refresh.
+</Note>
+
+## Access Token Authentication
+
+For simpler setups or server-side rendering scenarios, you can provide an access token directly:
+
+```tsx
+import ConvexPanel from "convex-panel/react";
+
+<ConvexPanel
+  accessToken={process.env.CONVEX_ACCESS_TOKEN}
+/>
+```
+
+### Obtaining Access Tokens
+
+<Steps>
+  <Step title="Navigate to Convex Dashboard">
+    Go to [Convex Dashboard](https://dashboard.convex.dev) and select your team
+  </Step>
+  
+  <Step title="Open Access Tokens">
+    Navigate to **Team Settings** → **Access Tokens**
+  </Step>
+  
+  <Step title="Create New Token">
+    Click **Create Token** and give it a descriptive name (e.g., "Convex Panel Dev")
+  </Step>
+  
+  <Step title="Copy Token Value">
+    Copy the generated token value immediately (it won't be shown again)
+  </Step>
+  
+  <Step title="Store Securely">
+    Add to your `.env` file:
+    ```bash
+    CONVEX_ACCESS_TOKEN=your-token-here
+    ```
+  </Step>
+</Steps>
+
+### Token Scope Levels
+
+Access tokens can be created at different scope levels:
+
+<CardGroup cols={2}>
+  <Card title="Team-Level Token" icon="users">
+    Access to all projects within a team. Recommended for development tools.
+  </Card>
+  
+  <Card title="Project-Level Token" icon="folder">
+    Access limited to a specific project. More restrictive and secure.
+  </Card>
+</CardGroup>
+
+<Warning>
+  **Team-level tokens are recommended** for Convex Panel as they allow browsing and switching between projects in the UI.
+</Warning>
+
+## Deploy Keys
+
+For admin-level access (used in CI/CD or advanced tooling), you can provide a deploy key:
+
+```tsx
+import ConvexPanel from "convex-panel/react";
+
+<ConvexPanel
+  deployKey={process.env.CONVEX_DEPLOY_KEY}
+  deployUrl={process.env.VITE_CONVEX_URL}
+/>
+```
+
+<Warning>
+  Deploy keys grant full administrative access to your deployment. **Only use them in secure, server-side environments.** Never commit deploy keys to version control.
+</Warning>
+
+## Custom Authentication
+
+For advanced use cases, you can provide a custom authentication implementation:
+
+```tsx
+import { useOAuth } from "convex-panel";
+import ConvexPanel from "convex-panel/react";
+
+function MyApp() {
+  const customAuth = useOAuth({
+    clientId: "my-client-id",
+    redirectUri: window.location.origin,
+    tokenExchangeUrl: "/api/custom-oauth-exchange",
+  });
+
+  return <ConvexPanel auth={customAuth} />;
+}
+```
+
+### UseOAuthReturn Interface
+
+```typescript
+interface UseOAuthReturn {
+  token: OAuthToken | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  error: string | null;
+  authenticate: () => Promise<void>;
+  logout: () => void;
+}
+```
+
+## Storage Keys
+
+Convex Panel uses the following storage keys for authentication state:
+
+| Key | Storage | Purpose |
+|-----|---------|----------|
+| `convex-panel:oauth-token` | localStorage | Stores OAuth access token |
+| `convex-panel:oauth-state` | sessionStorage | Tracks OAuth flow state |
+| `convex-panel:oauth-code-verifier` | sessionStorage | PKCE code verifier |
+| `convex-panel:oauth-used-codes` | sessionStorage | Prevents duplicate token exchanges |
+
+<Note>
+  The panel automatically cleans up OAuth state after successful authentication to prevent memory bloat and security issues.
+</Note>
+
+## Troubleshooting
+
+### Token Exchange Fails
+
+<AccordionGroup>
+  <Accordion title="Error: CONVEX_CLIENT_SECRET not configured">
+    Your backend token exchange endpoint needs the OAuth client secret. Set `CONVEX_CLIENT_SECRET` in your Convex deployment environment variables (not in your `.env` file).
+  </Accordion>
+  
+  <Accordion title="Error: CORS error during token exchange">
+    You must use a server-side token exchange endpoint. Direct browser-to-Convex OAuth token exchange is blocked by CORS. See [OAuth Setup](/configuration/oauth-setup).
+  </Accordion>
+  
+  <Accordion title="Error: OAuth state mismatch">
+    The OAuth state parameter doesn't match. This can happen if:
+    - You're using React StrictMode (duplicate renders)
+    - Multiple tabs are open during authentication
+    - Browser privacy settings block sessionStorage
+    
+    The panel includes built-in protection against these scenarios.
+  </Accordion>
+</AccordionGroup>
+
+### Token Not Working
+
+<AccordionGroup>
+  <Accordion title="Access token has no effect">
+    **Next.js**: Ensure `CONVEX_ACCESS_TOKEN` is exposed in `next.config.js`:
+    ```javascript
+    module.exports = {
+      env: {
+        CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+      },
+    };
+    ```
+    
+    **Vite**: Use `import.meta.env.VITE_` prefix or define global at build time.
+  </Accordion>
+  
+  <Accordion title="Token expired or invalid">
+    Access tokens can expire. Create a new token from the Convex Dashboard and update your environment variables.
+  </Accordion>
+</AccordionGroup>

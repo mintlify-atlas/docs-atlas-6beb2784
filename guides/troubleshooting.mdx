@@ -1,0 +1,482 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Convex Panel
+---
+
+## Overview
+
+This guide covers common issues you might encounter when using Convex Panel and their solutions.
+
+## Installation Issues
+
+<Accordion title="Package installation fails">
+  **Problem:** npm/yarn/pnpm fails to install `convex-panel`
+
+  **Solutions:**
+  
+  1. Clear your package manager cache:
+     ```bash
+     npm cache clean --force
+     # or
+     yarn cache clean
+     # or
+     pnpm store prune
+     ```
+
+  2. Delete `node_modules` and lockfile, then reinstall:
+     ```bash
+     rm -rf node_modules package-lock.json
+     npm install
+     ```
+
+  3. Check peer dependency requirements:
+     ```bash
+     npm install convex classnames date-fns framer-motion lucide-react react-window sonner
+     ```
+</Accordion>
+
+<Accordion title="TypeScript errors after installation">
+  **Problem:** TypeScript shows errors about missing types
+
+  **Solution:**
+  
+  Ensure your `tsconfig.json` includes:
+  ```json
+  {
+    "compilerOptions": {
+      "moduleResolution": "bundler",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "jsx": "preserve"
+    }
+  }
+  ```
+</Accordion>
+
+## Panel Not Appearing
+
+<Accordion title="Panel doesn't show up in my app">
+  **Problem:** The Convex Panel component is not visible
+
+  **Checklist:**
+  
+  1. **Verify ConvexProvider wrapper:**
+     ```tsx
+     // ✅ Correct
+     <ConvexProvider client={convex}>
+       <YourApp />
+       <ConvexPanel />
+     </ConvexProvider>
+
+     // ❌ Incorrect
+     <YourApp />
+     <ConvexPanel /> {/* Outside provider */}
+     ```
+
+  2. **Check environment variables:**
+     ```bash
+     # For Vite
+     VITE_CONVEX_URL=https://your-deployment.convex.cloud
+     
+     # For Next.js
+     NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+     ```
+
+  3. **Verify correct import for your framework:**
+     ```tsx
+     // For Next.js
+     import ConvexPanel from "convex-panel/nextjs";
+     
+     // For Vite/React
+     import ConvexPanel from "convex-panel/react";
+     ```
+
+  4. **Check for z-index conflicts:**
+     The panel uses `z-index: 9999`. If your app has elements with higher z-index values, the panel might be hidden behind them.
+</Accordion>
+
+<Accordion title="Panel appears but is empty or broken">
+  **Problem:** Panel renders but shows no content or appears broken
+
+  **Solutions:**
+  
+  1. Check browser console for errors
+  2. Verify your Convex deployment URL is correct
+  3. Ensure you're authenticated (check the Connect button)
+  4. Try clearing localStorage:
+     ```javascript
+     localStorage.clear();
+     window.location.reload();
+     ```
+</Accordion>
+
+## Authentication Issues
+
+<Accordion title="OAuth authentication fails">
+  **Problem:** OAuth login doesn't work or shows errors
+
+  **Checklist:**
+  
+  1. **Verify environment variables in `.env`:**
+     ```bash
+     VITE_OAUTH_CLIENT_ID=your-oauth-client-id
+     VITE_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+     ```
+
+  2. **Check Convex Dashboard settings:**
+     - Go to [Convex Dashboard](https://dashboard.convex.dev) → Team Settings
+     - Verify OAuth application is created
+     - Ensure Client ID matches your `.env` file
+
+  3. **Verify Convex deployment environment variables:**
+     ```bash
+     CONVEX_CLIENT_ID=your-oauth-client-id
+     CONVEX_CLIENT_SECRET=your-oauth-client-secret
+     OAUTH_REDIRECT_URI=http://localhost:5173  # or your app URL
+     ```
+
+  4. **Check `convex/http.ts` exists:**
+     The setup command should have created OAuth endpoints. Verify the file contains:
+     ```typescript
+     // POST /oauth/exchange
+     // OPTIONS /oauth/exchange
+     ```
+</Accordion>
+
+<Accordion title="Access token not working">
+  **Problem:** Providing an access token doesn't authenticate the panel
+
+  **Solutions:**
+  
+  **For Next.js:**
+  
+  1. Verify `CONVEX_ACCESS_TOKEN` is in `.env.local`
+  2. Ensure it's exposed in `next.config.js`:
+     ```javascript
+     env: {
+       CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+     }
+     ```
+  3. Pass it to the component:
+     ```tsx
+     <ConvexPanel accessToken={process.env.CONVEX_ACCESS_TOKEN} />
+     ```
+
+  **For Vite:**
+  
+  1. Define it in `vite.config.ts`:
+     ```typescript
+     define: {
+       __CONVEX_ACCESS_TOKEN__: JSON.stringify(env.CONVEX_ACCESS_TOKEN),
+     }
+     ```
+  2. Declare the global variable:
+     ```typescript
+     declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+     ```
+  3. Use it in your component:
+     ```tsx
+     <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+     ```
+
+  **Verify token validity:**
+  - Token should be a team-level access token from Convex Dashboard
+  - Check token hasn't expired
+  - Ensure token has proper permissions
+</Accordion>
+
+<Accordion title="Client secret errors">
+  **Problem:** Errors about missing or invalid client secret
+
+  **Important:** `CONVEX_CLIENT_SECRET` should **NEVER** be in your frontend `.env` file!
+  
+  **Correct setup:**
+  
+  1. **Frontend `.env`:**
+     ```bash
+     # ✅ Include these:
+     VITE_OAUTH_CLIENT_ID=your-client-id
+     
+     # ❌ NEVER include:
+     # CONVEX_CLIENT_SECRET=...  ← This is WRONG!
+     ```
+
+  2. **Convex Dashboard (deployment settings):**
+     ```bash
+     # ✅ Set these in Convex Dashboard:
+     CONVEX_CLIENT_ID=your-client-id
+     CONVEX_CLIENT_SECRET=your-client-secret
+     ```
+</Accordion>
+
+## Next.js Specific Issues
+
+<Accordion title="Hydration mismatch errors">
+  **Problem:** React hydration mismatch errors in the console
+
+  **Solution:**
+  
+  Use the Next.js-specific import which handles SSR automatically:
+  ```tsx
+  // ✅ Correct
+  import ConvexPanel from "convex-panel/nextjs";
+  
+  // ❌ Incorrect (causes hydration issues)
+  import ConvexPanel from "convex-panel";
+  ```
+</Accordion>
+
+<Accordion title="Build warnings about 'use client'">
+  **Problem:** Warnings during build about "use client" directive
+
+  **Solution:**
+  
+  These warnings are expected and won't affect functionality. The `convex-panel/nextjs` import already includes the "use client" directive.
+  
+  To suppress them, update your `next.config.js`:
+  ```javascript
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.ignoreWarnings = [
+        ...(config.ignoreWarnings || []),
+        {
+          module: /packages\/panel/,
+          message: /Critical dependency.*import\.meta/,
+        },
+      ];
+    }
+    return config;
+  }
+  ```
+</Accordion>
+
+<Accordion title="http.ts file in wrong location">
+  **Problem:** Setup script created `http.ts` in the wrong folder
+
+  **Solution:**
+  
+  1. Find the correct `convex/` directory (where your Convex functions live)
+  2. Move `http.ts` to that directory:
+     ```bash
+     mv app/convex/http.ts convex/http.ts
+     ```
+  3. Ensure the file is in the same directory as your other Convex functions
+</Accordion>
+
+## Vite Specific Issues
+
+<Accordion title="Panel appears in production build">
+  **Problem:** Convex Panel is included in production bundle
+
+  **Solutions:**
+  
+  1. **Install as dev dependency:**
+     ```bash
+     npm install convex-panel --save-dev
+     ```
+
+  2. **Use the Vite plugin:**
+     ```typescript
+     import { convexPanel } from 'convex-panel/vite';
+     
+     export default defineConfig({
+       plugins: [
+         react(),
+         convexPanel(), // Automatically removes panel from production
+       ],
+     });
+     ```
+
+  3. **Or conditionally render:**
+     ```tsx
+     {import.meta.env.DEV && <ConvexPanel />}
+     ```
+</Accordion>
+
+<Accordion title="Environment variables not working">
+  **Problem:** Environment variables are undefined
+
+  **Solution:**
+  
+  1. **Ensure variables are prefixed with `VITE_`:**
+     ```bash
+     # ✅ Correct
+     VITE_CONVEX_URL=https://your-deployment.convex.cloud
+     
+     # ❌ Incorrect (not exposed to client)
+     CONVEX_URL=https://your-deployment.convex.cloud
+     ```
+
+  2. **For non-prefixed variables, use `define` in config:**
+     ```typescript
+     import { loadEnv } from 'vite';
+     
+     export default defineConfig(({ mode }) => {
+       const env = loadEnv(mode, process.cwd(), '');
+       
+       return {
+         define: {
+           __CONVEX_ACCESS_TOKEN__: JSON.stringify(env.CONVEX_ACCESS_TOKEN),
+         },
+       };
+     });
+     ```
+
+  3. **Restart dev server after changing `.env`:**
+     ```bash
+     # Stop server (Ctrl+C) then:
+     npm run dev
+     ```
+</Accordion>
+
+## Data View Issues
+
+<Accordion title="Tables not loading">
+  **Problem:** Data view shows no tables or loading error
+
+  **Checklist:**
+  
+  1. Verify authentication is successful
+  2. Check that your Convex deployment has tables
+  3. Verify access token has proper permissions
+  4. Check browser console for API errors
+  5. Try refreshing the panel (close and reopen)
+</Accordion>
+
+<Accordion title="Cannot edit data">
+  **Problem:** Double-clicking cells doesn't enable editing
+
+  **Possible causes:**
+  
+  1. **Read-only access:** Your access token might have read-only permissions
+  2. **Table locked:** Some system tables are read-only
+  3. **Browser issue:** Try in a different browser or incognito mode
+</Accordion>
+
+## Performance Issues
+
+<Accordion title="Panel is slow or laggy">
+  **Problem:** Panel performance is degraded
+
+  **Solutions:**
+  
+  1. **Limit log retention:**
+     - Clear old logs using the panel's clear button
+     - Reduce log level filtering
+
+  2. **Reduce table data:**
+     - Use pagination controls
+     - Apply filters to reduce displayed rows
+
+  3. **Check browser resources:**
+     - Close unused tabs
+     - Disable browser extensions
+     - Check CPU and memory usage
+
+  4. **Optimize your queries:**
+     - Ensure Convex functions are properly indexed
+     - Reduce unnecessary data fetching
+</Accordion>
+
+## Browser Compatibility
+
+<Accordion title="Panel not working in specific browser">
+  **Problem:** Panel doesn't work in certain browsers
+
+  **Supported browsers:**
+  - Chrome 90+
+  - Firefox 88+
+  - Safari 14+
+  - Edge 90+
+
+  **Solutions:**
+  
+  1. Update to the latest browser version
+  2. Clear browser cache and cookies
+  3. Disable browser extensions that might interfere
+  4. Try in incognito/private mode
+</Accordion>
+
+## Getting More Help
+
+<CardGroup cols={2}>
+  <Card title="GitHub Issues" icon="github" href="https://github.com/robertalv/convex-panel/issues">
+    Report bugs or request features
+  </Card>
+  <Card title="Convex Discord" icon="discord" href="https://convex.dev/community">
+    Get help from the community
+  </Card>
+  <Card title="Documentation" icon="book" href="/quickstart">
+    Review setup and configuration guides
+  </Card>
+  <Card title="Examples" icon="code" href="https://github.com/robertalv/convex-panel/tree/main/examples">
+    See working example implementations
+  </Card>
+</CardGroup>
+
+## Debugging Tips
+
+### Enable Verbose Logging
+
+Add this to see detailed debug information:
+
+```tsx
+<ConvexPanel
+  onError={(error) => {
+    console.error('[ConvexPanel Error]:', error);
+  }}
+/>
+```
+
+### Check Local Storage
+
+The panel stores settings in localStorage. To inspect:
+
+```javascript
+// View stored settings
+console.log(localStorage.getItem('convex-panel-settings'));
+
+// Clear if corrupted
+localStorage.removeItem('convex-panel-settings');
+```
+
+### Verify Convex Connection
+
+Test your Convex connection separately:
+
+```tsx
+import { useQuery } from "convex/react";
+import { api } from "../convex/_generated/api";
+
+function TestConnection() {
+  const data = useQuery(api.yourFunction.list);
+  console.log('Convex data:', data);
+  return null;
+}
+```
+
+### Network Issues
+
+Check the Network tab in browser DevTools:
+
+1. Open DevTools (F12)
+2. Go to Network tab
+3. Filter by "convex"
+4. Look for failed requests (red)
+5. Check request/response details
+
+## Still Having Issues?
+
+If none of these solutions work:
+
+1. Create a minimal reproduction case
+2. Check the [GitHub issues](https://github.com/robertalv/convex-panel/issues) for similar problems
+3. Open a new issue with:
+   - Your environment (OS, browser, framework versions)
+   - Steps to reproduce
+   - Console errors
+   - Screenshots if applicable
+
+<Note>
+When reporting issues, **never share** your `CONVEX_CLIENT_SECRET` or `CONVEX_ACCESS_TOKEN` values!
+</Note>

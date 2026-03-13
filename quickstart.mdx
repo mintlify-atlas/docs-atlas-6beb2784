@@ -1,80 +1,427 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart
+description: Get Convex Panel running in your React application in under 5 minutes
 ---
 
-## Get started in three steps
+This guide will help you embed Convex Panel in your React application. You'll go from installation to a fully functional debugging panel in minutes.
 
-Get your documentation site running locally and make your first customization.
+## Prerequisites
 
-### Step 1: Set up your local environment
+Before you begin, ensure you have:
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+- A React application (Next.js, Vite, Create React App, etc.)
+- An existing Convex project with a deployment URL
+- Node.js 18+ installed
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  Don't have a Convex project yet? Visit [docs.convex.dev](https://docs.convex.dev) to get started.
 </Note>
+
+## Installation
+
+<Steps>
+  <Step title="Install Convex Panel">
+    Add `convex-panel` to your project as a dev dependency:
+    
+    <CodeGroup>
+      ```bash npm
+      npm install convex-panel --save-dev
+      ```
+      
+      ```bash yarn
+      yarn add convex-panel --dev
+      ```
+      
+      ```bash pnpm
+      pnpm add convex-panel --save-dev
+      ```
+      
+      ```bash bun
+      bun add convex-panel --dev
+      ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Run the setup wizard">
+    The setup command will configure your project automatically:
+    
+    ```bash
+    npx convex-panel setup
+    ```
+    
+    This command will:
+    - Create or update `convex/http.ts` with OAuth endpoints
+    - Prompt you for required environment variables
+    - Configure OAuth authentication
+    
+    <Warning>
+      If `http.ts` is created in the wrong location, move it to your actual `convex/` directory where your other Convex functions live.
+    </Warning>
+  </Step>
+  
+  <Step title="Configure environment variables">
+    The setup wizard will guide you through setting these variables in your `.env.local` file:
+    
+    <CodeGroup>
+      ```bash Vite/React
+      VITE_CONVEX_URL=https://your-deployment.convex.cloud
+      VITE_OAUTH_CLIENT_ID=your-oauth-client-id
+      VITE_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+      CONVEX_ACCESS_TOKEN=your-access-token
+      ```
+      
+      ```bash Next.js
+      NEXT_PUBLIC_CONVEX_URL=https://your-deployment.convex.cloud
+      NEXT_PUBLIC_OAUTH_CLIENT_ID=your-oauth-client-id
+      NEXT_PUBLIC_CONVEX_TOKEN_EXCHANGE_URL=https://your-deployment.convex.site/oauth/exchange
+      CONVEX_ACCESS_TOKEN=your-access-token
+      ```
+    </CodeGroup>
+  </Step>
+  
+  <Step title="Set up OAuth in Convex Dashboard">
+    1. Go to [Convex Dashboard](https://dashboard.convex.dev)
+    2. Navigate to your team settings
+    3. Create a new OAuth application
+    4. Copy the **Client ID** and **Client Secret**
+    5. In your Convex deployment settings, add:
+       - `CONVEX_CLIENT_ID` - Your OAuth Client ID
+       - `CONVEX_CLIENT_SECRET` - Your OAuth Client Secret (never in frontend `.env`)
+  </Step>
+  
+  <Step title="Create an access token">
+    1. Go to [Convex Dashboard](https://dashboard.convex.dev) → Team Settings → Access Tokens
+    2. Create a new team-level access token
+    3. Copy the token value
+    4. Add it to your `.env.local` as `CONVEX_ACCESS_TOKEN`
+  </Step>
+</Steps>
+
+## Framework Integration
+
+Choose your framework for specific integration instructions:
+
+<Tabs>
+  <Tab title="Vite / React">
+    ### Add Panel to Your App
+    
+    Import and add `ConvexPanel` to your root component:
+    
+    ```tsx src/App.tsx
+    import { ConvexReactClient, ConvexProvider } from "convex/react";
+    import ConvexPanel from "convex-panel/react";
+    
+    const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+    
+    export default function App() {
+      return (
+        <ConvexProvider client={convex}>
+          {/* Your application components */}
+          <YourApp />
+          
+          {/* Convex Panel - appears at bottom of screen */}
+          <ConvexPanel />
+        </ConvexProvider>
+      );
+    }
+    ```
+    
+    ### Configure Access Token
+    
+    Update your `vite.config.ts` to expose the access token:
+    
+    ```typescript vite.config.ts
+    import { defineConfig, loadEnv } from 'vite';
+    import react from '@vitejs/plugin-react';
+    
+    export default defineConfig(({ mode }) => {
+      const env = loadEnv(mode, process.cwd(), '');
+      
+      return {
+        plugins: [react()],
+        define: {
+          __CONVEX_ACCESS_TOKEN__: JSON.stringify(env.CONVEX_ACCESS_TOKEN),
+        },
+      };
+    });
+    ```
+    
+    Then pass it to the panel:
+    
+    ```tsx src/App.tsx
+    declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+    
+    export default function App() {
+      return (
+        <ConvexProvider client={convex}>
+          <YourApp />
+          <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+        </ConvexProvider>
+      );
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Next.js">
+    ### Create a Client Component
+    
+    Create a providers file for client-side components:
+    
+    ```tsx app/providers.tsx
+    "use client";
+    
+    import { ConvexReactClient, ConvexProvider } from "convex/react";
+    import ConvexPanel from "convex-panel/nextjs";
+    
+    const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
+    
+    export function ConvexClientProvider({ 
+      children 
+    }: { 
+      children: React.ReactNode 
+    }) {
+      return (
+        <ConvexProvider client={convex}>
+          {children}
+          <ConvexPanel />
+        </ConvexProvider>
+      );
+    }
+    ```
+    
+    ### Update Root Layout
+    
+    Wrap your app with the provider:
+    
+    ```tsx app/layout.tsx
+    import { ConvexClientProvider } from "./providers";
+    
+    export default function RootLayout({
+      children,
+    }: {
+      children: React.ReactNode;
+    }) {
+      return (
+        <html lang="en">
+          <body>
+            <ConvexClientProvider>
+              {children}
+            </ConvexClientProvider>
+          </body>
+        </html>
+      );
+    }
+    ```
+    
+    ### Configure Access Token
+    
+    Update `next.config.js` to expose the access token:
+    
+    ```javascript next.config.js
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      env: {
+        CONVEX_ACCESS_TOKEN: process.env.CONVEX_ACCESS_TOKEN,
+      },
+    };
+    
+    module.exports = nextConfig;
+    ```
+  </Tab>
+  
+  <Tab title="Tanstack Start">
+    ### Configure Vite
+    
+    Update your `vite.config.ts`:
+    
+    ```typescript vite.config.ts
+    import { defineConfig, loadEnv } from "vite";
+    import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+    
+    export default defineConfig(({ mode }) => {
+      const env = loadEnv(mode, process.cwd(), "");
+      const accessToken = env.CONVEX_ACCESS_TOKEN;
+    
+      return {
+        plugins: [tanstackStart()],
+        define: {
+          __CONVEX_ACCESS_TOKEN__: JSON.stringify(accessToken),
+        },
+      };
+    });
+    ```
+    
+    ### Add to Root Component
+    
+    ```tsx app/root.tsx
+    import { ConvexReactClient, ConvexProvider } from "convex/react";
+    import { ConvexPanel } from "convex-panel/react";
+    
+    declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+    
+    const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+    
+    function RootDocument() {
+      return (
+        <ConvexProvider client={convex}>
+          {/* Your app */}
+          <Outlet />
+          
+          {__CONVEX_ACCESS_TOKEN__ && (
+            <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+          )}
+        </ConvexProvider>
+      );
+    }
+    ```
+  </Tab>
+  
+  <Tab title="React Router">
+    ### Configure Vite
+    
+    ```typescript vite.config.ts
+    import { reactRouter } from "@react-router/dev/vite";
+    import { defineConfig, loadEnv } from "vite";
+    
+    export default defineConfig(({ mode }) => {
+      const env = loadEnv(mode, process.cwd(), "");
+      const accessToken = env.CONVEX_ACCESS_TOKEN;
+    
+      return {
+        plugins: [reactRouter()],
+        define: {
+          __CONVEX_ACCESS_TOKEN__: JSON.stringify(accessToken),
+        },
+      };
+    });
+    ```
+    
+    ### Add to Root Component
+    
+    ```tsx app/root.tsx
+    import { ConvexReactClient, ConvexProvider } from "convex/react";
+    import { ConvexPanel } from "convex-panel/react";
+    
+    declare const __CONVEX_ACCESS_TOKEN__: string | undefined;
+    
+    const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+    
+    export default function App() {
+      return (
+        <ConvexProvider client={convex}>
+          {/* Your app */}
+          <Outlet />
+          
+          <ConvexPanel accessToken={__CONVEX_ACCESS_TOKEN__} />
+        </ConvexProvider>
+      );
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Test Your Setup
+
+<Steps>
+  <Step title="Start your development server">
+    ```bash
+    npm run dev
+    ```
+  </Step>
+  
+  <Step title="Look for the panel">
+    The Convex Panel should appear at the bottom of your screen. It starts minimized as a small tab.
+  </Step>
+  
+  <Step title="Connect to your project">
+    1. Click the **"Connect"** button in the panel
+    2. You'll be redirected to Convex OAuth login
+    3. After authentication, select your project from the dropdown
+    4. The panel will now be connected and ready to use
+  </Step>
+</Steps>
+
+<Note>
+  The panel automatically saves your connection state, so you only need to authenticate once.
+</Note>
+
+## Using the Panel
+
+Once connected, you can:
+
+### Browse Data
+Click on **Data** to explore your Convex tables:
+- View documents in table, list, or JSON format
+- Filter and search data
+- Edit documents in-place (double-click any cell)
+- Perform CRUD operations
+
+### View Logs
+Switch to **Logs** to monitor function calls:
+- Real-time log streaming
+- Filter by type (SUCCESS, FAILURE, ERROR, etc.)
+- Search across all log messages
+- View execution details and stack traces
+
+### Test Functions
+Use the **Functions** view to:
+- Execute queries, mutations, and actions
+- View function source code
+- See performance metrics
+- Test with custom JSON inputs
+
+### Monitor Health
+Check **Health** metrics for:
+- Cache hit rates
+- Failure rates and error tracking
+- Latency percentiles
+- Database usage and storage
+
+## Troubleshooting
+
+<Warning>
+  Common issues and solutions:
+</Warning>
+
+### Panel Not Appearing
+
+- **Ensure ConvexProvider wraps the panel**: The panel must be inside `<ConvexProvider>`
+- **Check for z-index conflicts**: The panel uses `z-index: 999999`
+- **Next.js users**: Make sure you're using `convex-panel/nextjs` import
+
+### Authentication Issues
+
+- **Verify OAuth credentials**: Check that `CONVEX_CLIENT_ID` and `CONVEX_CLIENT_SECRET` are set in your Convex dashboard
+- **Check environment variables**: Ensure all required variables are in `.env.local`
+- **Token exchange URL**: Verify the URL matches your deployment: `https://your-deployment.convex.site/oauth/exchange`
+
+### http.ts File Issues
+
+- **Wrong location**: If setup created `http.ts` in the wrong folder, manually move it to your `convex/` directory
+- **OAuth endpoints missing**: Ensure `http.ts` exports the OAuth exchange endpoints created by setup
+
+### Access Token Not Working
+
+- **Next.js**: Verify `CONVEX_ACCESS_TOKEN` is exposed in `next.config.js` `env` config
+- **Vite**: Ensure `__CONVEX_ACCESS_TOKEN__` is defined in `vite.config.ts`
+- **Token validity**: Check that the token is a valid team-level access token from Convex dashboard
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/configuration">
+    Customize the panel appearance and behavior
+  </Card>
+  
+  <Card title="Data Browser" icon="database" href="/features/data-browser">
+    Deep dive into data browsing features
+  </Card>
+  
+  <Card title="Function Testing" icon="code" href="/features/function-runner">
+    Learn advanced function testing techniques
+  </Card>
+  
+  <Card title="Authentication" icon="lock" href="/configuration/authentication">
+    Understand OAuth and token authentication
+  </Card>
+</CardGroup>

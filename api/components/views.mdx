@@ -1,0 +1,313 @@
+---
+title: View Components
+description: Individual view components for displaying different aspects of your Convex deployment
+---
+
+Convex Panel exports individual view components that can be used independently for custom layouts or desktop applications.
+
+## Available Views
+
+<CardGroup cols={2}>
+  <Card title="HealthView" icon="heart-pulse">
+    Displays deployment health metrics, error rates, and performance data
+  </Card>
+  <Card title="DataView" icon="database">
+    Browse and edit tables, documents, and schemas
+  </Card>
+  <Card title="LogsView" icon="list">
+    Real-time function execution logs with filtering
+  </Card>
+  <Card title="FunctionsView" icon="code">
+    Browse and run Convex functions
+  </Card>
+  <Card title="FilesView" icon="folder">
+    Browse file storage and uploaded files
+  </Card>
+</CardGroup>
+
+## HealthView
+
+Displays deployment health metrics, function performance, error analytics, and AI-powered insights.
+
+### Import
+
+```tsx
+import { HealthView } from 'convex-panel';
+```
+
+### Usage
+
+```tsx
+<HealthView
+  deploymentUrl="https://your-deployment.convex.cloud"
+  authToken={accessToken}
+  adminClient={adminClient}
+/>
+```
+
+### Props
+
+<ParamField path="deploymentUrl" type="string">
+  Convex deployment URL.
+</ParamField>
+
+<ParamField path="authToken" type="string" required>
+  Authentication token for API access.
+</ParamField>
+
+<ParamField path="teamAccessToken" type="string">
+  Team-level access token.
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Use mock data instead of real API calls.
+</ParamField>
+
+<ParamField path="adminClient" type="ConvexClient">
+  Admin client instance for accessing deployment data.
+</ParamField>
+
+### Features
+
+- **Performance Metrics**: Function execution times, latency percentiles
+- **Error Tracking**: Failure rates, recent errors, error analysis
+- **Cache Analytics**: Cache hit rates and performance
+- **Scheduler Status**: Scheduled function lag and status
+- **AI Analysis**: Error analysis and deployment insights
+
+## DataView
+
+Provides a full-featured data browser with table exploration, document editing, filtering, and schema management.
+
+### Import
+
+```tsx
+import { DataView } from 'convex-panel';
+```
+
+### Usage
+
+```tsx
+<DataView
+  convexUrl="https://your-deployment.convex.cloud"
+  accessToken={accessToken}
+  adminClient={adminClient}
+/>
+```
+
+### Props
+
+<ParamField path="convexUrl" type="string">
+  Convex deployment URL.
+</ParamField>
+
+<ParamField path="accessToken" type="string" required>
+  Authentication token for API access.
+</ParamField>
+
+<ParamField path="baseUrl" type="string">
+  Alternative base URL for API requests.
+</ParamField>
+
+<ParamField path="adminClient" type="ConvexClient">
+  Admin client instance for managing data.
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Use mock data for testing.
+</ParamField>
+
+<ParamField path="onError" type="(error: string) => void">
+  Callback function for error handling.
+</ParamField>
+
+<ParamField path="teamSlug" type="string">
+  Team slug for team-scoped operations.
+</ParamField>
+
+<ParamField path="projectSlug" type="string">
+  Project slug for project-scoped operations.
+</ParamField>
+
+<ParamField path="sheetRenderMode" type="'portal' | 'inline'" default="'portal'">
+  Render mode for edit sheets:
+  - `'portal'`: Renders as overlay (default)
+  - `'inline'`: Renders inline for push-aside layouts (desktop)
+</ParamField>
+
+<ParamField path="initialTable" type="string | null">
+  Optional initial table to select when the view loads. Useful for deep-linking.
+</ParamField>
+
+### Features
+
+- **Table Browser**: Navigate all tables with schema information
+- **Document Editor**: Add, edit, and delete documents
+- **Advanced Filtering**: Build complex queries with visual filters
+- **Column Management**: Show/hide columns dynamically
+- **Bulk Operations**: Select and delete multiple documents
+- **Schema Viewer**: View table schemas and field types
+- **Index Management**: View and manage table indexes
+- **Natural Language Queries**: AI-powered query builder
+
+## LogsView
+
+Displays real-time function execution logs with advanced filtering and search capabilities.
+
+### Import
+
+```tsx
+import { LogsView } from 'convex-panel';
+```
+
+### Usage
+
+```tsx
+<LogsView
+  convexUrl="https://your-deployment.convex.cloud"
+  accessToken={accessToken}
+  adminClient={adminClient}
+/>
+```
+
+### Props
+
+<ParamField path="convexUrl" type="string">
+  Convex deployment URL.
+</ParamField>
+
+<ParamField path="accessToken" type="string" required>
+  Authentication token for API access.
+</ParamField>
+
+<ParamField path="baseUrl" type="string">
+  Alternative base URL for API requests.
+</ParamField>
+
+<ParamField path="adminClient" type="ConvexClient">
+  Admin client instance.
+</ParamField>
+
+<ParamField path="useMockData" type="boolean" default="false">
+  Use mock data for testing.
+</ParamField>
+
+<ParamField path="onError" type="(error: string) => void">
+  Callback function for error handling.
+</ParamField>
+
+### Features
+
+- **Real-time Streaming**: Live log updates as functions execute
+- **Auto-pause**: Automatically pauses when scrolling away from latest logs
+- **Function Filtering**: Filter by specific functions or components
+- **Log Type Filtering**: Filter by success, failure, debug, info, warn, error
+- **Component Filtering**: Filter logs by component in multi-component projects
+- **Search**: Full-text search across all log data
+- **Execution Details**: View request ID, duration, memory usage, and more
+- **AI Error Analysis**: Get AI-powered analysis and fix suggestions for errors
+
+## FunctionsView
+
+Browse and execute Convex functions with an interactive function runner.
+
+### Import
+
+```tsx
+import { FunctionsView } from 'convex-panel';
+```
+
+### Features
+
+- **Function Discovery**: Automatically discovers all functions in your deployment
+- **Interactive Runner**: Execute functions with custom arguments
+- **Result Visualization**: View function results in formatted JSON
+- **Component Support**: Browse functions across multiple components
+- **Type Information**: View function signatures and return types
+
+## FilesView
+
+Browse and manage files stored in Convex file storage.
+
+### Import
+
+```tsx
+import { FilesView } from 'convex-panel';
+```
+
+### Features
+
+- **File Browser**: Navigate uploaded files
+- **File Metadata**: View file sizes, types, and upload dates
+- **File Preview**: Preview supported file types
+- **File Actions**: Download, delete, and manage files
+
+## Using Views in Custom Layouts
+
+Views can be composed into custom layouts:
+
+```tsx
+import { HealthView, DataView, LogsView } from 'convex-panel';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+function CustomPanel() {
+  return (
+    <Tabs defaultValue="health">
+      <TabsList>
+        <TabsTrigger value="health">Health</TabsTrigger>
+        <TabsTrigger value="data">Data</TabsTrigger>
+        <TabsTrigger value="logs">Logs</TabsTrigger>
+      </TabsList>
+      
+      <TabsContent value="health">
+        <HealthView
+          deploymentUrl={url}
+          authToken={token}
+          adminClient={client}
+        />
+      </TabsContent>
+      
+      <TabsContent value="data">
+        <DataView
+          convexUrl={url}
+          accessToken={token}
+          adminClient={client}
+        />
+      </TabsContent>
+      
+      <TabsContent value="logs">
+        <LogsView
+          convexUrl={url}
+          accessToken={token}
+          adminClient={client}
+        />
+      </TabsContent>
+    </Tabs>
+  );
+}
+```
+
+## Desktop Application Integration
+
+For desktop applications, use the `sheetRenderMode="inline"` prop on DataView for a better UX:
+
+```tsx
+<DataView
+  convexUrl={url}
+  accessToken={token}
+  adminClient={client}
+  sheetRenderMode="inline"
+  initialTable="users"
+/>
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="ConvexPanel" icon="window" href="/api/components/convex-panel">
+    Main panel component with all views integrated
+  </Card>
+  <Card title="Hooks" icon="webhook" href="/api/hooks">
+    React hooks for custom integrations
+  </Card>
+</CardGroup>

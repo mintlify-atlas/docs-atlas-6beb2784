@@ -1,0 +1,219 @@
+---
+title: 'CLI Setup'
+description: 'Set up the Convex Panel CLI for your project'
+---
+
+## Installation
+
+The Convex Panel CLI is included when you install the `convex-panel` package:
+
+```bash
+npm install convex-panel
+```
+
+The CLI provides the `convex-panel` command through the package's bin script defined in package.json:174.
+
+## Available Commands
+
+### `convex-panel setup`
+
+Runs the interactive setup process to configure your Convex Panel installation. This command executes two setup scripts in sequence:
+
+1. **OAuth Setup** - Configures OAuth HTTP routes in your Convex project
+2. **Environment Setup** - Guides you through setting required environment variables
+
+```bash
+convex-panel setup
+```
+
+<Note>
+The setup command runs both OAuth and environment configuration automatically. You can also run them individually using npm scripts if needed.
+</Note>
+
+## Setup Process
+
+### Step 1: OAuth Configuration
+
+The setup command first runs the OAuth configuration script (setup-oauth.js:24), which:
+
+- Locates or creates `convex/http.ts` in your project
+- Adds required imports (`httpRouter`, `httpAction`)
+- Injects OAuth exchange endpoints:
+  - `POST /oauth/exchange` - Exchanges OAuth code for access token
+  - `OPTIONS /oauth/exchange` - Handles CORS preflight requests
+- Ensures idempotent operation (won't duplicate existing routes)
+
+<CodeGroup>
+```typescript Example Output
+[convex-panel] Found existing convex/http.ts file. Will append OAuth handlers.
+[convex-panel] Successfully appended OAuth HTTP action routes to existing convex/http.ts (path: /oauth/exchange).
+```
+
+```typescript Generated Code
+export const exchangeOAuthCode = httpAction(async (ctx, request) => {
+  // Handles OAuth code exchange
+  // See setup-oauth.js:184-336 for full implementation
+});
+
+http.route({
+  path: "/oauth/exchange",
+  method: "POST",
+  handler: exchangeOAuthCode,
+});
+```
+</CodeGroup>
+
+### Step 2: Environment Variable Configuration
+
+After OAuth setup, the environment configuration script (setup-env.js:26) guides you through setting up required variables:
+
+<Steps>
+  <Step title="Framework Detection">
+    The CLI automatically detects your framework or prompts you to select:
+    - Vite (uses `VITE_` prefix)
+    - Next.js (uses `NEXT_PUBLIC_` prefix)
+    - React/CRA (uses `REACT_APP_` prefix)
+    - Other (defaults to `VITE_` prefix)
+  </Step>
+
+  <Step title="Environment File Selection">
+    Looks for `.env.local` first, then `.env`, or creates `.env.local` if neither exists.
+  </Step>
+
+  <Step title="Variable Configuration">
+    Prompts for the following environment variables (skips any already set):
+
+    <CardGroup cols={2}>
+      <Card title="CONVEX_URL" icon="link">
+        Your Convex deployment URL
+        
+        Example: `https://your-deployment.convex.cloud`
+      </Card>
+      
+      <Card title="OAUTH_CLIENT_ID" icon="key">
+        OAuth client ID from Convex dashboard
+        
+        Get from: [dashboard.convex.dev](https://dashboard.convex.dev)
+      </Card>
+      
+      <Card title="CONVEX_CLIENT_SECRET" icon="lock">
+        OAuth client secret (no prefix)
+        
+        Get from: [dashboard.convex.dev](https://dashboard.convex.dev)
+      </Card>
+      
+      <Card title="CONVEX_TOKEN_EXCHANGE_URL" icon="arrow-right-arrow-left">
+        Token exchange endpoint URL
+        
+        Example: `https://your-deployment.convex.site/oauth/exchange`
+      </Card>
+      
+      <Card title="CONVEX_ACCESS_TOKEN" icon="ticket">
+        Your personal access token
+        
+        Get from: Team Settings → Access Tokens
+      </Card>
+    </CardGroup>
+  </Step>
+</Steps>
+
+## Interactive Setup Experience
+
+The setup script provides a rich interactive experience with:
+
+- **Colored terminal output** for better readability (setup-env.js:59-71)
+- **Arrow key navigation** for framework selection (setup-env.js:91-357)
+- **Smart defaults** based on existing configuration
+- **URL suggestions** (e.g., auto-generates `.convex.site` URL from `.convex.cloud` URL)
+
+<CodeGroup>
+```bash Example Session
+╔═══════════════════════════════════════════════════════════╗
+║     Convex Panel - Environment Setup                      ║
+╚═══════════════════════════════════════════════════════════╝
+
+ℹ Configuring environment variables in: .env.local
+
+Select your framework:
+  → Vite
+    Next.js
+    React (Create React App)
+    Other
+
+Use ↑↓ arrows or numbers (1-4) to select, Enter/Space to confirm
+
+ℹ Using Vite framework with VITE_ prefix.
+
+→ Convex deployment URL (e.g. https://your-deployment.convex.cloud) for VITE_CONVEX_URL: 
+```
+</CodeGroup>
+
+## Command Output
+
+Upon successful completion, you'll see:
+
+```bash
+✓ Successfully added the following environment variables:
+  ✓ VITE_CONVEX_URL
+  ✓ VITE_OAUTH_CLIENT_ID
+  ✓ CONVEX_CLIENT_SECRET
+  ✓ VITE_CONVEX_TOKEN_EXCHANGE_URL
+  ✓ CONVEX_ACCESS_TOKEN
+```
+
+## Manual Setup
+
+You can also run the setup scripts individually using npm:
+
+```bash
+# Run OAuth setup only
+npm run setup:oauth
+
+# Run environment setup only
+npm run setup:env
+
+# Run both (equivalent to convex-panel setup)
+npm run setup
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="OAuth routes already exist">
+    If you see this message:
+    
+    ```
+    [convex-panel] OAuth HTTP action already present in convex/http.ts; no changes made.
+    ```
+    
+    This is normal - the setup is idempotent and won't duplicate existing routes (setup-oauth.js:86-91).
+  </Accordion>
+
+  <Accordion title="Failed to read convex/http.ts">
+    Make sure you're running the command from your project root or the `convex/` directory. The script automatically detects your location (setup-oauth.js:30-46).
+  </Accordion>
+
+  <Accordion title="Environment variables not loading">
+    Ensure your framework is configured to load the environment file:
+    - **Vite**: Automatically loads `.env.local`
+    - **Next.js**: Automatically loads `.env.local`
+    - **CRA**: Automatically loads `.env.local`
+    
+    You may need to restart your dev server after setup.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+After running setup:
+
+1. Restart your development server to load new environment variables
+2. Deploy your Convex functions to apply the OAuth routes:
+   ```bash
+   npx convex deploy
+   ```
+3. Import and use the Panel component in your application
+
+<Card title="Usage Guide" icon="book" href="/cli/usage">
+  Learn how to use the CLI commands and integrate the panel
+</Card>
