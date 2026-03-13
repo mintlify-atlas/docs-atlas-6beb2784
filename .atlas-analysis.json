@@ -1,0 +1,145 @@
+{
+  "projectType": "saas",
+  "projectName": "Convex Panel",
+  "projectDescription": "A comprehensive debugging and monitoring suite for Convex applications across desktop, mobile, web, and Raycast.",
+  "theme": "palm",
+  "primaryColor": "#f4b31c",
+  "lightColor": "#8c2474",
+  "darkColor": "#ee342d",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "installation",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Platforms",
+            "pages": [
+              "platforms/desktop",
+              "platforms/npm-package",
+              "platforms/mobile",
+              "platforms/raycast"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/data-browser",
+              "features/logs",
+              "features/health-metrics",
+              "features/function-runner",
+              "features/schema-visualizer",
+              "features/file-storage",
+              "features/performance-advisor"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/authentication",
+              "configuration/oauth-setup",
+              "configuration/environment-variables",
+              "configuration/framework-integration"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/embedding-in-react",
+              "guides/nextjs-integration",
+              "guides/vite-integration",
+              "guides/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Components",
+            "pages": [
+              "api/components/convex-panel",
+              "api/components/views",
+              "api/components/auth-panel"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/hooks/use-oauth",
+              "api/hooks/use-theme",
+              "api/hooks/use-components"
+            ]
+          },
+          {
+            "group": "Utilities",
+            "pages": [
+              "api/utilities/oauth",
+              "api/utilities/metrics",
+              "api/utilities/storage"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/props",
+              "api/types/data-structures"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI",
+        "groups": [
+          {
+            "group": "Commands",
+            "pages": [
+              "cli/setup",
+              "cli/usage"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time data browser with CRUD operations",
+    "Live log streaming and historical search",
+    "Health metrics and performance monitoring",
+    "Function runner with code inspection",
+    "Interactive schema visualizer with Git integration",
+    "File storage management",
+    "Cross-platform support (Desktop, Mobile, Web, Raycast)",
+    "OAuth and deploy key authentication",
+    "Dark/light theme support",
+    "Framework-agnostic React components"
+  ],
+  "publicApiSurface": [
+    "ConvexPanel - Main embeddable component",
+    "ConvexPanelShadow - Shadow DOM variant",
+    "HealthView - Health metrics view component",
+    "DataView - Data browser view component",
+    "FunctionsView - Functions explorer view component",
+    "LogsView - Logs viewer component",
+    "FilesView - File storage manager component",
+    "SettingsView - Settings panel component",
+    "useOAuth() - OAuth authentication hook",
+    "useTheme() - Theme management hook",
+    "useComponents() - Components registry hook",
+    "buildAuthorizationUrl() - OAuth URL builder",
+    "exchangeCodeForToken() - OAuth token exchange",
+    "handleOAuthCallback() - OAuth callback handler",
+    "fetchFailureRate() - Metrics API for failure rates",
+    "fetchCacheHitRate() - Metrics API for cache performance",
+    "fetchLatencyPercentiles() - Metrics API for latency",
+    "npx convex-panel setup - CLI setup command"
+  ]
+}
